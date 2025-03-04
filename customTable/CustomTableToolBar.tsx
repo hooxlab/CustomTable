@@ -1,0 +1,428 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { useState } from "react"
+
+// tanstack
+import { Table, Header, Column } from "@tanstack/react-table"
+
+// next
+import { useParams, useRouter } from "next/navigation"
+
+// shad
+import {
+    DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+    DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent,
+    DropdownMenuSubTrigger, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuPortal
+} from "@/components/ui/dropdown-menu"
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Separator } from "@/components/ui/separator"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+
+// components
+import CustomTableFilter from "@/components/custom/customTable/CustomTableFilter"
+import CustomTableFilterSettings from "@/components/custom/customTable/CustomTableFilterSettings"
+
+// export excel
+import ExcelJS from 'exceljs'
+import { saveAs } from 'file-saver'
+
+// icons
+import { Trash, FileDown, Columns3, BookText, Maximize, ArrowLeftToLine, ArrowRightToLine, RotateCcw, Loader2, FileUp, Filter, Plus, SlidersHorizontal } from "lucide-react"
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// interface
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+type ColumnFile = {
+    header: string;
+    key: string;
+    width: number;
+}
+
+interface filterFieldsProps {
+    type: string;
+    label: string;
+    field: string;
+    options?: { select_value: string; select_title: string; }[]
+    url?: string;
+}
+
+export interface CustomTableToolBarProps<T> {
+    table: Table<T>;
+    isFilter: boolean;
+    grouping: string[];
+    settings: {
+        create: boolean;
+        import: boolean;
+        export: boolean;
+        filter: boolean
+    }
+    storage: { exist: boolean; reset: () => void; }
+    exportData: () => Promise<{ [key: string]: any }[]>;
+    filterFields?: filterFieldsProps[]
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// code
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+export function CustomTableToolBar<T>({
+    table,
+    exportData,
+    isFilter,
+    grouping,
+    settings,
+    storage,
+    filterFields = []
+}: CustomTableToolBarProps<T>) {
+
+    // params and router
+    const params = useParams()
+    const router = useRouter()
+
+    // init filter
+    const [pendingFilter, setPendingFilter] = useState({})
+
+    // loader
+    const [loading, setLoading] = useState(false)
+
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // filter (reset - clear - save)
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    const resetFilter = () => {
+        setPendingFilter({})
+        // setFilters({})
+        table.firstPage()
+    }
+
+    const clearFilter = () => {
+        // setFilters(pendingFilter)
+        table.firstPage()
+    }
+
+    const saveFilter = () => {
+        // setFilters((prev) => ({ ...prev, ...pendingFilter }))
+        table.firstPage()
+    }
+
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // pinning
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    const leftColumns = table.getState()?.columnPinning?.left ?? []
+    const rightColumns = table.getState()?.columnPinning?.right ?? []
+
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // export
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    const exportToExcel = async () => {
+
+        // caricamento
+        setLoading(true)
+
+        // query
+        const res = await exportData()
+
+        // tipo di file e estensione
+        const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
+        const fileExtension = '.xlsx'
+
+        // creo una nuova istanza
+        const workbook = new ExcelJS.Workbook()
+        const worksheet = workbook.addWorksheet('Sheet1')
+
+        // estraggo le colonne e imposto le colonne
+        const columns: Partial<ColumnFile>[] = table.getHeaderGroups()[0].headers.map((el: Header<T, unknown>) => (
+            { header: el.column.columnDef.header as string, key: el.id, width: 40 }
+        ))
+        worksheet.columns = columns
+
+        // estraggo le righe (i dati) e imposto le righe
+        res.forEach(item => worksheet.addRow(item))
+
+        // Crea un buffer e scrivo il file Excel
+        const buffer = await workbook.xlsx.writeBuffer()
+        const fileData = new Blob([buffer], { type: fileType })
+        saveAs(fileData, "Export" + fileExtension)
+
+        setLoading(false)
+    }
+
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // component
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    return (
+        <>
+            <section className="grid gap-2 mb-4 grid-cols-2">
+
+                {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                    search
+                ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
+
+                <div className="flex gap-2">
+                    <Input
+                        autoFocus={false}
+                        className="!text-xs h-8" value={table.getState().globalFilter} placeholder="Cerca..."
+                        onChange={e => {
+                            table.firstPage()
+                            const val = e.target.value == "" ? [] : String(e.target.value)
+                            table.setGlobalFilter(val)
+                        }}
+                    />
+                    {table.getState().globalFilter.length > 0 && (
+                        <div>
+                            <Button size="sm" className="px-2" variant="destructive" onClick={() => { table.setGlobalFilter([]); table.firstPage() }}>
+                                <Trash className="size-4" />
+                            </Button>
+                        </div>
+                    )}
+                </div>
+
+                {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                    create update filters
+                ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
+
+                <div className="text-end">
+                    {settings.filter && (
+                        <Sheet open>
+                            <SheetTrigger asChild>
+                                <Button size="sm" variant="secondary">
+                                    <SlidersHorizontal />
+                                    {filterFields.length > 0 ? "Gestione filtri" : "Aggiungi filtro"}
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="bottom" className="[&_.absolute.right-4.top-4]:hidden">
+                                <SheetHeader>
+                                    <SheetTitle>{filterFields.length > 0 ? "Gestione filtri" : "Aggiungi filtro"}</SheetTitle>
+                                    <SheetDescription className="text-xs">Aggiungi o gestisci i tuoi filtri</SheetDescription>
+                                </SheetHeader>
+                                <Separator className="my-4" />
+                                <CustomTableFilterSettings />
+                            </SheetContent>
+                        </Sheet>
+                    )}
+                </div>
+            </section>
+
+            {!isFilter && (
+                <div className="grid grid-cols-4 items-center gap-2 py-1">
+                    <div className="flex gap-2 items-center">
+
+                        {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                            local storage
+                        ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
+
+                        {storage.exist && (
+                            <Button variant="destructive" size="sm" onClick={storage.reset}>
+                                <RotateCcw /> Pulisci tabella
+                            </Button>
+                        )}
+
+                        {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                            columns
+                        ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
+
+                        {table.getAllColumns().length > 0 && (
+                            <div className="flex gap-2">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" size="sm"><Columns3 /> Colonne</Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="w-56 max-h-[500px] overflow-auto">
+                                        <DropdownMenuLabel className="text-xs font-normal">Gestione colonne</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+
+                                        {/* all */}
+                                        {!table.getIsAllColumnsVisible() && (
+                                            <>
+                                                <DropdownMenuCheckboxItem className="text-xs" checked={table.getIsAllColumnsVisible()} onClick={() => table.setColumnVisibility({})}>
+                                                    Tutte le colonne
+                                                </DropdownMenuCheckboxItem>
+                                                <DropdownMenuSeparator />
+                                            </>
+                                        )}
+
+                                        {/* list */}
+                                        {table.getAllLeafColumns().map((column: Column<T, unknown>) => {
+                                            return (
+                                                <DropdownMenuCheckboxItem className="text-xs" key={column.id} checked={column.getIsVisible()} onClick={column.getToggleVisibilityHandler()}>
+                                                    {column.id}
+                                                </DropdownMenuCheckboxItem>
+                                            )
+                                        })}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+
+                                {/* reset */}
+                                {!table.getIsAllColumnsVisible() && (
+                                    <Button size="sm" className="px-2" variant="destructive" onClick={() => table.setColumnVisibility({})}>
+                                        <Trash />
+                                    </Button>
+                                )}
+                            </div>
+                        )}
+
+                        {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                            settings (grouping, pinning)
+                        ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
+
+                        {(leftColumns.length > 0 || rightColumns.length > 0 || grouping.length > 0) && (
+                            <div className="flex gap-2">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" size="sm"><BookText /> Gestione</Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="w-56 max-h-[500px] overflow-auto">
+                                        <DropdownMenuLabel className="text-xs font-normal">Colonne</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+
+                                        {/* left pinning */}
+                                        {leftColumns.length > 0 && (
+                                            <DropdownMenuSub>
+                                                <DropdownMenuSubTrigger className="text-xs"><ArrowLeftToLine /> <span>Bloccate a sinistra</span></DropdownMenuSubTrigger>
+                                                <DropdownMenuPortal>
+                                                    <DropdownMenuSubContent>
+                                                        {leftColumns.map((el, index) => (
+                                                            <DropdownMenuItem className="text-xs" key={index}><ArrowLeftToLine /> <span>{el}</span></DropdownMenuItem>
+                                                        ))}
+                                                    </DropdownMenuSubContent>
+                                                </DropdownMenuPortal>
+                                            </DropdownMenuSub>
+                                        )}
+
+                                        {/* right pinning */}
+                                        {rightColumns.length > 0 && (
+                                            <DropdownMenuSub>
+                                                <DropdownMenuSubTrigger className="text-xs"><ArrowRightToLine /> <span>Bloccate a destra</span></DropdownMenuSubTrigger>
+                                                <DropdownMenuPortal>
+                                                    <DropdownMenuSubContent>
+                                                        {rightColumns.map((el, index) => (
+                                                            <DropdownMenuItem className="text-xs" key={index}><ArrowRightToLine /> <span>{el}</span></DropdownMenuItem>
+                                                        ))}
+                                                    </DropdownMenuSubContent>
+                                                </DropdownMenuPortal>
+                                            </DropdownMenuSub>
+                                        )}
+
+                                        {/* grouping */}
+                                        {grouping.length > 0 && (
+                                            <DropdownMenuSub>
+                                                <DropdownMenuSubTrigger className="text-xs"><Maximize /> <span>Raggruppate</span></DropdownMenuSubTrigger>
+                                                <DropdownMenuPortal>
+                                                    <DropdownMenuSubContent>
+                                                        {grouping.map((el, index) => (
+                                                            <DropdownMenuItem className="text-xs" key={index}><Maximize /> <span>{el}</span></DropdownMenuItem>
+                                                        ))}
+                                                    </DropdownMenuSubContent>
+                                                </DropdownMenuPortal>
+                                            </DropdownMenuSub>
+                                        )}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+
+                                {/* clear */}
+                                <Button
+                                    size="sm" variant="destructive" className="px-2"
+                                    onClick={() => { table.setGrouping([]); table.setColumnPinning({ left: [], right: [] }) }}
+                                >
+                                    <RotateCcw />
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                        add - import - export - filter
+                    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
+
+                    <div className="col-span-3 items-center flex justify-end gap-2">
+                        {settings.create && (
+                            <Button variant="default" size="sm" onClick={() => router.push(`${params.name}/aggiungi`)}>
+                                <Plus className="size-4" /> Aggiungi
+                            </Button>
+                        )}
+
+                        {settings.import && (
+                            <Button variant="default" size="sm">
+                                <FileUp className="size-4" /> Importa
+                            </Button>
+                        )}
+
+                        {settings.export && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={exportToExcel}
+                                disabled={loading || table.getRowModel().rows?.length == 0}
+                            >
+                                {loading ? <Loader2 className="size-4 animate-spin" /> : <FileDown className="size-4" />} Esporta
+                            </Button>
+                        )}
+
+                        {settings.filter && filterFields?.length > 0 && (
+                            <>
+                                <Sheet>
+                                    <SheetTrigger asChild>
+                                        <Button variant="outline" size="sm" disabled={table.getRowModel().rows?.length == 0}>
+                                            <Filter /> Filtra
+                                        </Button>
+                                    </SheetTrigger>
+                                    <SheetContent onCloseAutoFocus={clearFilter} className="[&_.absolute.right-4.top-4]:hidden">
+                                        <SheetHeader>
+                                            <SheetTitle>Filtra tabella</SheetTitle>
+                                            <SheetDescription className="text-xs">Filtra la tabella per i campi che ti servono.</SheetDescription>
+                                        </SheetHeader>
+                                        <Separator className="my-4" />
+
+                                        <CustomTableFilter
+                                            actions={{ resetFilter, clearFilter, saveFilter }}
+                                            pendingFilter={pendingFilter}
+                                            setPendingFilter={setPendingFilter}
+                                            filterFields={filterFields}
+                                        // filterFields={[
+                                        //     {
+                                        //         type: "date",
+                                        //         label: "date",
+                                        //         field: "1"
+                                        //     },
+                                        //     {
+                                        //         type: "range",
+                                        //         label: "range",
+                                        //         field: "2"
+                                        //     },
+                                        //     {
+                                        //         type: "select",
+                                        //         label: "select",
+                                        //         field: "3",
+                                        //         options: [
+                                        //             { select_title: "test1", select_value: "1" },
+                                        //             { select_title: "test2", select_value: "2" },
+                                        //             { select_title: "test3", select_value: "3" }
+                                        //         ]
+                                        //     },
+                                        //     {
+                                        //         type: "multiple",
+                                        //         label: "multiple",
+                                        //         field: "4",
+                                        //         options: [
+                                        //             { select_title: "test1", select_value: "1" },
+                                        //             { select_title: "test2", select_value: "2" },
+                                        //             { select_title: "test3", select_value: "3" }
+                                        //         ]
+                                        //     }
+                                        // ]}
+                                        />
+                                    </SheetContent>
+                                </Sheet>
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
+        </>
+    )
+}
