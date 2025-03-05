@@ -1,33 +1,32 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
-
-// next
-import { useParams, useRouter } from "next/navigation"
+import { useState, useEffect, useMemo, useCallback } from "react"
 
 // components
-import CustomLoader from "@/components/custom/customLoader"
-import CustomModal from "@/components/custom/customModal/customModal"
-import CustomTableHeader from "@/components/custom/customTable/CustomTableHeader"
-import { CustomTableToolBar } from "@/components/custom/customTable/CustomTableToolBar"
-import { CustomTablePagination } from "@/components/custom/customTable/CustomTablePagination"
+import Loader from "@/components/custom/CustomTable/Loader"
+import Modal from "@/components/custom/CustomTable/Modal"
+import HTableHeader from "@/components/custom/CustomTable/Table/HTableHeader"
+import HTablePagination from "@/components/custom/CustomTable/Table/HTablePagination"
+import HTableToolBar from "@/components/custom/CustomTable/Table/HTableToolBar"
+
 
 // shad
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 
 // icons
 import { CornerDownRight, CornerLeftDown, Trash, Pen, Eye, SquareX } from "lucide-react"
 
 // axios
-import { apiClient } from "@/utils/interseptor"
+import { apiClient } from "@/utils/Interceptor"
 
 // query
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 
 // table
 import {
-    ColumnDef, flexRender, getCoreRowModel, useReactTable,
+    Row, ColumnDef, flexRender, getCoreRowModel, useReactTable,
     getPaginationRowModel,
     SortingState, getSortedRowModel,
     ColumnFiltersState, getFilteredRowModel,
@@ -46,9 +45,9 @@ interface filterFieldsProps {
     url?: string;
 }
 
-interface CustomTableProps<T> {
+interface HTableProps<T> {
 
-    // relations
+    // general
     tableName: string;
 
     // get data
@@ -59,36 +58,64 @@ interface CustomTableProps<T> {
     columns: ColumnDef<T>[]
 
     // filter
-    isFilter?: boolean;
+    isFilter?: { active: boolean; slim: boolean; };
+
+    // custom filter
+    filters?: { [key: string]: any };
+    setFilters?: React.Dispatch<React.SetStateAction<{ [key: string]: any }>>;
 
     // crud
     crud?: { read: boolean; update: boolean; delete: boolean; }
 
     // settings
-    settings?: { create: boolean; import: boolean; export: boolean; filter: boolean; }
+    settings?: { search: boolean; create: boolean; import: boolean; export: boolean; filter: boolean; }
 
+    // filter table
     filterFields?: filterFieldsProps[]
+
+    // router
+    router?: any,
+
+    // relations
+    relationships?: { [key: string]: { [key: string]: string } };
+    primaryKey?: string;
+    filterName?: string;
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function CustomTable<T>({
-    url,
+export default function HTable<T>({
     tableName,
+
+    url,
     urlParams = "",
+
     columns,
-    isFilter = false,
+
+    isFilter = { active: false, slim: false },
+
+    filters,
+    setFilters,
+
     crud = { read: true, update: true, delete: true },
-    settings = { create: true, import: true, export: true, filter: true },
-    filterFields = []
-}: CustomTableProps<T>) {
+
+    settings = { search: true, create: true, import: true, export: true, filter: true },
+
+    filterFields = [],
+
+    router,
+
+    relationships,
+    primaryKey = "id",
+    filterName
+}: HTableProps<T>) {
 
     // storage
     const initialValues = {
         search: [],
-        pagination: { pageIndex: 0, pageSize: isFilter ? 10 : 50 },
+        pagination: { pageIndex: 0, pageSize: isFilter.active ? 10 : 50 },
         grouping: [],
         pinning: { left: [], right: [] },
         colums: {},
@@ -98,12 +125,16 @@ export default function CustomTable<T>({
     const [storageExists, setStorageExists] = useState(localStorage.getItem(tableName) !== JSON.stringify(initialValues))
     const storedData = storage ? JSON.parse(storage) : initialValues
 
-    // params and router
-    const params = useParams()
-    const router = useRouter()
+    // relationship
+    const [relationshipsData, setRelationshipsData] = useState<{ [key: string]: any }>({})
+    const effectiveFilterName = filterName || primaryKey
 
     // modal delete
     const [dialogDelete, setDialogDelete] = useState({ open: false, id: '' })
+
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // table state
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     // pagination
     const [pagination, setPagination] = useState(storedData.pagination)
@@ -122,6 +153,58 @@ export default function CustomTable<T>({
 
     // visibility
     const [columnVisibility, setColumnVisibility] = useState(storedData.colums)
+
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // filter
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    const [_filters, _setFilters] = useState<{ [key: string]: any }>({})
+    const effectiveFilters = filters || _filters
+    const effectiveSetFilters = setFilters || _setFilters
+
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // relationship
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    // filter
+    const relationshipsFilter = useCallback((row: Row<T>) => {
+        if (isFilter && relationships) {
+            effectiveSetFilters((prev) => {
+                const element = String((row.original as { [key: string]: any })[primaryKey])
+                const currentArray = prev[effectiveFilterName] || []
+                const newArray = currentArray.includes(element) ? currentArray.filter((item: string) => item !== element) : [...currentArray, element]
+
+                if (newArray.length === 0) {
+                    const newFilters = { ...prev }
+                    delete newFilters[effectiveFilterName]
+                    return newFilters
+                } else return { ...prev, [effectiveFilterName]: newArray }
+            })
+        }
+    }, [effectiveSetFilters])
+
+    // checked
+    const checkedFilter = useCallback((row: Row<T>) => {
+        if (isFilter && relationships) {
+            if (effectiveFilters[effectiveFilterName] && effectiveFilters[effectiveFilterName].includes(String((row.original as { [key: string]: any })[primaryKey]))) return true
+            return false
+        }
+        return false
+    }, [effectiveFilters])
+
+    // create params relationship
+    useEffect(() => {
+        if (relationships && relationships[tableName]) {
+            let data: { [key: string]: string | string[] } = {}
+            Object.entries(effectiveFilters).map(([key, value]) => {
+                if (relationships[tableName][key]) {
+                    if (typeof value == 'object') data[relationships[tableName][key]] = Object.values(value) as string[]
+                    else data[relationships[tableName][key]] = String(value)
+                }
+            })
+            setRelationshipsData(data)
+        }
+    }, [effectiveFilters])
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // localstorage
@@ -154,12 +237,6 @@ export default function CustomTable<T>({
     }, [globalFilter, pagination, grouping, columnPinning, columnVisibility, sorting, tableName, initialValues])
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    // filter
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    //TODO
-
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // params
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -168,8 +245,9 @@ export default function CustomTable<T>({
         page: pagination.pageIndex + 1,
         pageSize: pagination.pageSize,
         order: sorting,
-        search: globalFilter
-    }), [pagination, urlParams, sorting, globalFilter])
+        search: globalFilter,
+        relations: relationshipsData
+    }), [pagination, urlParams, sorting, globalFilter, relationshipsData])
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // get
@@ -183,13 +261,13 @@ export default function CustomTable<T>({
     // data
     const { data, isLoading } = useQuery({
         queryKey: [tableName, url, dataParams],
+        staleTime: 1000,
         queryFn: async () => fetchData(),
         placeholderData: keepPreviousData,
-        staleTime: 1000
     })
 
     // total elements
-    const rowCount = useMemo(() => data?.total_count ?? 0, [data])
+    const rowCount = useMemo(() => data?.tot_records ?? 0, [data])
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // table
@@ -198,7 +276,7 @@ export default function CustomTable<T>({
     const table = useReactTable({
 
         // init
-        data: data?.data ?? [],
+        data: data?.results ?? [],
         columns,
         getCoreRowModel: getCoreRowModel(),
 
@@ -232,7 +310,7 @@ export default function CustomTable<T>({
         // resize
         columnResizeMode: 'onChange',
         columnResizeDirection: 'ltr',
-        defaultColumn: { minSize: 250, maxSize: 1200 },
+        defaultColumn: { minSize: 300, maxSize: 1200 },
 
         // total elements
         rowCount,
@@ -242,17 +320,28 @@ export default function CustomTable<T>({
     })
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // router
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    const navigate = (url: string) => {
+        if (router) router(url)
+        const newUrl = window.location.pathname.endsWith('/') ? window.location.pathname + url : window.location.pathname + '/' + url
+        window.history.pushState({}, '', newUrl)
+        window.dispatchEvent(new Event('popstate'))
+    }
+
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // export
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     const exportFunction = async () => {
         const dataexport = { urlParams: urlParams, nopagination: true, order: sorting, search: globalFilter }
         const res = await apiClient.get(url, { params: dataexport })
-        return res.data.data
+        return res.data.results
     }
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    // delete
+    // delete #TODO
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     const deleteRow = (id: number | string) => {
@@ -266,8 +355,8 @@ export default function CustomTable<T>({
     return (
         <>
             {/* toolbar */}
-            <div className="mb-4">
-                <CustomTableToolBar<T>
+            <div>
+                <HTableToolBar<T>
                     table={table}
                     isFilter={isFilter}
                     grouping={grouping}
@@ -275,6 +364,7 @@ export default function CustomTable<T>({
                     storage={{ exist: storageExists, reset: resetLocalStorage }}
                     exportData={() => exportFunction()}
                     filterFields={filterFields}
+                    navigate={navigate}
                 />
             </div>
 
@@ -284,14 +374,13 @@ export default function CustomTable<T>({
                 <TableHeader>
                     {table.getHeaderGroups().map((headerGroup) => (
                         <TableRow key={headerGroup.id} className="*:px-4 *:border">
-
+                            {isFilter && (<TableHead></TableHead>)}
                             {headerGroup.headers.map((header) => (
                                 <TableHead key={header.id} style={{ width: `${header.getSize()}px` }} className="text-xs">
-                                    <CustomTableHeader header={header} />
+                                    <HTableHeader header={header} />
                                 </TableHead>
                             ))}
-
-                            {Object.entries(crud).some(([, value]) => value) && <TableHead></TableHead>}
+                            {!isFilter && Object.entries(crud).some(([, value]) => value) && <TableHead></TableHead>}
                         </TableRow>
                     ))}
                 </TableHeader>
@@ -300,7 +389,7 @@ export default function CustomTable<T>({
                     {isLoading && (
                         <TableRow>
                             <TableCell colSpan={columns.length + 1} className="border h-12">
-                                <CustomLoader size="sm" />
+                                <Loader size="sm" />
                             </TableCell>
                         </TableRow>
                     )}
@@ -309,16 +398,24 @@ export default function CustomTable<T>({
                         <>
                             {table.getRowModel().rows?.length > 0 && (
                                 table.getRowModel().rows.map((row) => (
-                                    <TableRow key={row.id} className="*:px-4 *:border cursor-pointer *:text-xs">
+                                    <TableRow key={row.id} className="*:px-4 *:border cursor-pointer *:text-xs" onClick={() => relationshipsFilter(row)}>
 
+                                        {/* checkbox */}
+                                        {isFilter && (
+                                            <TableCell className="w-10 text-center [&:has([role=checkbox])]:pr-4">
+                                                <Checkbox checked={checkedFilter(row)} />
+                                            </TableCell>
+                                        )}
+
+                                        {/* data */}
                                         {row.getVisibleCells().map((cell) => (
                                             <TableCell
                                                 key={cell.id}
                                                 onDoubleClick={() => {
                                                     if (row.getIsGrouped()) return
                                                     const id = (row.original as { _id: string })._id
-                                                    if (crud.read) router.push(`${params.name}/visualizza/${id}`)
-                                                    if (crud.update) router.push(`${params.name}/modifica/${id}`)
+                                                    if (crud.read) navigate(`visualizza/${id}`)
+                                                    if (crud.update) navigate(`modifica/${id}`)
                                                 }}
                                             >
                                                 {cell.getIsGrouped() && (
@@ -333,32 +430,27 @@ export default function CustomTable<T>({
                                             </TableCell>
                                         ))}
 
-                                        {Object.entries(crud).some(([, value]) => value) && !isFilter && (
+                                        {/* crud */}
+                                        {!isFilter && Object.entries(crud).some(([, value]) => value) && !isFilter && (
                                             <TableCell className="w-40">
                                                 <section className="flex justify-center gap-2">
                                                     {crud.read && (
                                                         <Button
                                                             variant="ghost" size="sm" className="px-2"
-                                                            onClick={() => router.push(`${params.name}/visualizza/${(row.original as { id: string | number }).id}`)}
-                                                        >
-                                                            <Eye />
-                                                        </Button>
+                                                            onClick={() => navigate(`visualizza/${(row.original as { id: string | number }).id}`)}
+                                                        ><Eye /></Button>
                                                     )}
                                                     {crud.update && (
                                                         <Button
                                                             variant="ghost" size="sm" className="px-2"
-                                                            onClick={() => router.push(`${params.name}/modifica/${(row.original as { id: string | number }).id}`)}
-                                                        >
-                                                            <Pen />
-                                                        </Button>
+                                                            onClick={() => navigate(`modifica/${(row.original as { id: string | number }).id}`)}
+                                                        ><Pen /></Button>
                                                     )}
                                                     {crud.delete && (
                                                         <Button
                                                             variant="ghost" size="sm" className="px-2 text-destructive hover:text-destructive"
                                                             onClick={() => setDialogDelete({ open: true, id: (row.original as { id: string }).id })}
-                                                        >
-                                                            <Trash />
-                                                        </Button>
+                                                        ><Trash /></Button>
                                                     )}
                                                 </section>
                                             </TableCell>
@@ -379,16 +471,17 @@ export default function CustomTable<T>({
             </Table>
 
             {/* pagination */}
-            {table.getRowModel().rows?.length > 0 && (
-                <CustomTablePagination<T>
+            {table.getRowModel().rows?.length > 0 && !isFilter.slim && (
+                <HTablePagination<T>
                     table={table}
-                    isFilter={isFilter}
+                    isFilter={isFilter.active}
                     info={{ pageIndex: pagination.pageIndex, rowCount: rowCount, pageSize: pagination.pageSize }}
                 />
             )}
 
+            {/* TODO */}
             {/* modal delete */}
-            <CustomModal
+            {/* <CustomModal
                 customName="Elimina elemento"
                 description="Una volta eliminato non sarà più possibile recuperarlo."
                 icon={<SquareX className="size-6" />}
@@ -400,7 +493,7 @@ export default function CustomTable<T>({
                     <Button size="lg" variant="destructive" onClick={() => deleteRow(dialogDelete.id)}>Conferma</Button>
                     <Button size="lg" variant="ghost" onClick={() => setDialogDelete({ id: "", open: false })}>Annulla</Button>
                 </div>
-            </CustomModal>
+            </CustomModal> */}
 
         </>
     )

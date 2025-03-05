@@ -8,11 +8,11 @@ import { Label } from "@/components/ui/label"
 import { RouteOff, Settings2, Trash, X } from "lucide-react"
 
 // components
-import { CustomRangeDatePicker } from "@/components/custom/customDate/customRangeDatePicker"
-import { CustomMultiSelect } from "@/components/custom/customSelect/customMultiSelect"
-import CustomSingleSelect from "@/components/custom/customSelect/customSingleSelect"
-import { CustomDatePicker } from "@/components/custom/customDate/customDatePicker"
-import { CustomSelect } from "@/components/custom/customSelect/customSelect"
+import RangeDatePicker from "@/components/custom/CustomTable/Date/RangeDatePicker"
+import MultiSelect from "@/components/custom/CustomTable/Select/MultiSelect"
+import SingleSelect from "@/components/custom/CustomTable/Select/SingleSelect"
+import DatePicker from "@/components/custom/CustomTable/Date/DatePicker"
+import SearchSelect from "@/components/custom/CustomTable/Select/SearchSelect"
 
 // date
 import { format } from 'date-fns'
@@ -37,7 +37,7 @@ interface filterFieldsProps {
     url?: string;
 }
 
-interface CustomTableFilterProps {
+interface HTableToolBarFilterProps {
     filterFields: filterFieldsProps[];
     pendingFilter: PendingFilterProps;
     setPendingFilter: React.Dispatch<React.SetStateAction<PendingFilterProps>>
@@ -52,7 +52,7 @@ interface CustomTableFilterProps {
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function CustomTableFilter({ filterFields, actions, pendingFilter, setPendingFilter }: CustomTableFilterProps) {
+export default function HTableToolBarFilter({ filterFields, actions, pendingFilter, setPendingFilter }: HTableToolBarFilterProps) {
 
     const resetFilter = (field: string) => {
         setPendingFilter(prev => {
@@ -85,7 +85,7 @@ export default function CustomTableFilter({ filterFields, actions, pendingFilter
                     switch (el.type) {
 
                         // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                        // data
+                        // data #TODO
                         // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
                         case 'date':
@@ -93,7 +93,7 @@ export default function CustomTableFilter({ filterFields, actions, pendingFilter
                                 <div key={index}>
                                     <Label className="text-xs">{el.label}</Label>
                                     <div className="flex gap-2 items-center mt-1">
-                                        <CustomDatePicker
+                                        <DatePicker
                                             value={pendingFilter?.[el.field] as string || undefined}
                                             onChange={(date) => setPendingFilter(prev => ({ ...prev, [el.field]: date }))}
                                         />
@@ -109,7 +109,7 @@ export default function CustomTableFilter({ filterFields, actions, pendingFilter
                             )
 
                         // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                        // date range
+                        // date range #TODO
                         // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
                         case 'date_range':
@@ -118,7 +118,7 @@ export default function CustomTableFilter({ filterFields, actions, pendingFilter
                                     <Label className="text-xs">{el.label}</Label>
                                     <div className="flex gap-2 items-center mt-1">
                                         <div className="w-full">
-                                            <CustomRangeDatePicker
+                                            <RangeDatePicker
                                                 date={pendingFilter?.[`range_${el.field}`] as object}
                                                 onClose={(open: boolean) => {
                                                     if (open && pendingFilter?.[`range_${el.field}`] &&
@@ -149,7 +149,7 @@ export default function CustomTableFilter({ filterFields, actions, pendingFilter
                             )
 
                         // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                        // select
+                        // select #TODO
                         // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
                         case 'select':
@@ -157,7 +157,7 @@ export default function CustomTableFilter({ filterFields, actions, pendingFilter
                                 <div key={index}>
                                     <Label className="text-xs">{el.label}</Label>
                                     <div className="flex gap-2 items-center mt-1">
-                                        <CustomSelect
+                                        <SearchSelect
                                             selected={pendingFilter?.[el.field] || {}}
                                             onChange={(value, title) => setPendingFilter(prev => ({ ...prev, [el.field]: { id: value, name: title } }))}
                                             values={el?.options || undefined}
@@ -175,7 +175,7 @@ export default function CustomTableFilter({ filterFields, actions, pendingFilter
                             )
 
                         // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                        // multiselect
+                        // multiselect #TODO
                         // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
                         case 'multiple_select':
@@ -183,7 +183,7 @@ export default function CustomTableFilter({ filterFields, actions, pendingFilter
                                 <div key={index}>
                                     <Label className="text-xs">{el.label}</Label>
                                     <div className="mt-1">
-                                        <CustomMultiSelect
+                                        <MultiSelect
                                             values={el?.options || undefined}
                                             url={el?.url || undefined}
                                             selected={pendingFilter?.[el.field] || []}
@@ -195,7 +195,7 @@ export default function CustomTableFilter({ filterFields, actions, pendingFilter
                             )
 
                         // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                        // boolean
+                        // boolean #TODO
                         // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
                         case 'boolean':
@@ -203,7 +203,7 @@ export default function CustomTableFilter({ filterFields, actions, pendingFilter
                                 <div key={index}>
                                     <Label className="text-xs">{el.label}</Label>
                                     <div className="flex gap-2 items-center mt-1">
-                                        <CustomSingleSelect
+                                        <SingleSelect
                                             selected={pendingFilter?.[el.field] || {}}
                                             onChange={(value, title) => setPendingFilter(prev => ({ ...prev, [el.field]: { id: value, name: title } }))}
                                             values={el?.options || undefined}

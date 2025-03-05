@@ -1,12 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 // tanstack
 import { Table, Header, Column } from "@tanstack/react-table"
-
-// next
-import { useParams, useRouter } from "next/navigation"
 
 // shad
 import {
@@ -20,15 +17,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 // components
-import CustomTableFilter from "@/components/custom/customTable/CustomTableFilter"
-import CustomTableFilterSettings from "@/components/custom/customTable/CustomTableFilterSettings"
+import HTableToolBarFilter from "@/components/custom/CustomTable/Table/HTableToolBarFilter"
 
 // export excel
 import ExcelJS from 'exceljs'
 import { saveAs } from 'file-saver'
 
 // icons
-import { Trash, FileDown, Columns3, BookText, Maximize, ArrowLeftToLine, ArrowRightToLine, RotateCcw, Loader2, FileUp, Filter, Plus, SlidersHorizontal } from "lucide-react"
+import { Trash, FileDown, Columns3, BookText, Maximize, ArrowLeftToLine, ArrowRightToLine, RotateCcw, Loader2, FileUp, Filter, Plus } from "lucide-react"
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
@@ -48,44 +44,56 @@ interface filterFieldsProps {
     url?: string;
 }
 
-export interface CustomTableToolBarProps<T> {
+export interface HTableToolBarProps<T> {
     table: Table<T>;
-    isFilter: boolean;
+
+    // filter
+    isFilter: { active: boolean; slim: boolean; };
+
+    // grouping and settings
     grouping: string[];
     settings: {
+        search: boolean;
         create: boolean;
         import: boolean;
         export: boolean;
         filter: boolean
     }
+
+    // storage and export
     storage: { exist: boolean; reset: () => void; }
     exportData: () => Promise<{ [key: string]: any }[]>;
-    filterFields?: filterFieldsProps[]
+
+    // filter table
+    filterFields?: filterFieldsProps[];
+
+    // router
+    navigate: any;
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export function CustomTableToolBar<T>({
+export default function HTableToolBar<T>({
     table,
     exportData,
     isFilter,
     grouping,
     settings,
     storage,
-    filterFields = []
-}: CustomTableToolBarProps<T>) {
-
-    // params and router
-    const params = useParams()
-    const router = useRouter()
+    filterFields = [],
+    navigate
+}: HTableToolBarProps<T>) {
 
     // init filter
     const [pendingFilter, setPendingFilter] = useState({})
 
     // loader
     const [loading, setLoading] = useState(false)
+
+    // search
+    const [search, setSearch] = useState("")
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // filter (reset - clear - save)
@@ -113,6 +121,26 @@ export function CustomTableToolBar<T>({
 
     const leftColumns = table.getState()?.columnPinning?.left ?? []
     const rightColumns = table.getState()?.columnPinning?.right ?? []
+
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // search state for delay
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            table.firstPage()
+            const val = search == "" ? [] : String(search)
+            table.setGlobalFilter(val)
+        }, 500)
+
+        return () => clearTimeout(handler)
+    }, [search])
+
+    const resetSearch = () => {
+        setSearch("")
+        table.setGlobalFilter([])
+        table.firstPage()
+    }
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // export
@@ -157,59 +185,31 @@ export function CustomTableToolBar<T>({
 
     return (
         <>
-            <section className="grid gap-2 mb-4 grid-cols-2">
+            {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                search
+            ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
 
-                {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                    search
-                ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
-
-                <div className="flex gap-2">
-                    <Input
-                        autoFocus={false}
-                        className="!text-xs h-8" value={table.getState().globalFilter} placeholder="Cerca..."
-                        onChange={e => {
-                            table.firstPage()
-                            const val = e.target.value == "" ? [] : String(e.target.value)
-                            table.setGlobalFilter(val)
-                        }}
-                    />
-                    {table.getState().globalFilter.length > 0 && (
-                        <div>
-                            <Button size="sm" className="px-2" variant="destructive" onClick={() => { table.setGlobalFilter([]); table.firstPage() }}>
-                                <Trash className="size-4" />
-                            </Button>
-                        </div>
-                    )}
-                </div>
-
-                {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                    create update filters
-                ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
-
-                <div className="text-end">
-                    {settings.filter && (
-                        <Sheet open>
-                            <SheetTrigger asChild>
-                                <Button size="sm" variant="secondary">
-                                    <SlidersHorizontal />
-                                    {filterFields.length > 0 ? "Gestione filtri" : "Aggiungi filtro"}
+            {settings.search && (
+                <section className={`grid gap-2 ${isFilter.slim ? "mb-2" : "grid-cols-2 mb-4"}`}>
+                    <div className="flex gap-2">
+                        <Input
+                            autoFocus={false}
+                            className="!text-xs h-8" value={search} placeholder="Cerca..."
+                            onChange={e => setSearch(e.target.value)}
+                        />
+                        {table.getState().globalFilter.length > 0 && (
+                            <div>
+                                <Button size="sm" className="px-2" variant="destructive" onClick={resetSearch}>
+                                    <Trash className="size-4" />
                                 </Button>
-                            </SheetTrigger>
-                            <SheetContent side="bottom" className="[&_.absolute.right-4.top-4]:hidden">
-                                <SheetHeader>
-                                    <SheetTitle>{filterFields.length > 0 ? "Gestione filtri" : "Aggiungi filtro"}</SheetTitle>
-                                    <SheetDescription className="text-xs">Aggiungi o gestisci i tuoi filtri</SheetDescription>
-                                </SheetHeader>
-                                <Separator className="my-4" />
-                                <CustomTableFilterSettings />
-                            </SheetContent>
-                        </Sheet>
-                    )}
-                </div>
-            </section>
+                            </div>
+                        )}
+                    </div>
+                </section>
+            )}
 
-            {!isFilter && (
-                <div className="grid grid-cols-4 items-center gap-2 py-1">
+            {!isFilter.active && (
+                <div className="grid grid-cols-4 items-center gap-2 py-1 mb-4">
                     <div className="flex gap-2 items-center">
 
                         {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -341,7 +341,7 @@ export function CustomTableToolBar<T>({
 
                     <div className="col-span-3 items-center flex justify-end gap-2">
                         {settings.create && (
-                            <Button variant="default" size="sm" onClick={() => router.push(`${params.name}/aggiungi`)}>
+                            <Button variant="default" size="sm" onClick={() => navigate('aggiungi')}>
                                 <Plus className="size-4" /> Aggiungi
                             </Button>
                         )}
@@ -378,43 +378,11 @@ export function CustomTableToolBar<T>({
                                         </SheetHeader>
                                         <Separator className="my-4" />
 
-                                        <CustomTableFilter
+                                        <HTableToolBarFilter
                                             actions={{ resetFilter, clearFilter, saveFilter }}
                                             pendingFilter={pendingFilter}
                                             setPendingFilter={setPendingFilter}
                                             filterFields={filterFields}
-                                        // filterFields={[
-                                        //     {
-                                        //         type: "date",
-                                        //         label: "date",
-                                        //         field: "1"
-                                        //     },
-                                        //     {
-                                        //         type: "range",
-                                        //         label: "range",
-                                        //         field: "2"
-                                        //     },
-                                        //     {
-                                        //         type: "select",
-                                        //         label: "select",
-                                        //         field: "3",
-                                        //         options: [
-                                        //             { select_title: "test1", select_value: "1" },
-                                        //             { select_title: "test2", select_value: "2" },
-                                        //             { select_title: "test3", select_value: "3" }
-                                        //         ]
-                                        //     },
-                                        //     {
-                                        //         type: "multiple",
-                                        //         label: "multiple",
-                                        //         field: "4",
-                                        //         options: [
-                                        //             { select_title: "test1", select_value: "1" },
-                                        //             { select_title: "test2", select_value: "2" },
-                                        //             { select_title: "test3", select_value: "3" }
-                                        //         ]
-                                        //     }
-                                        // ]}
                                         />
                                     </SheetContent>
                                 </Sheet>

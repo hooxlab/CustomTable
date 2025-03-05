@@ -5,7 +5,7 @@ import { toast } from "sonner"
 // success
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export function customToastSuccess(text: string) {
+export function ToastSuccess(text: string) {
     return (
         toast.success(
             text,
@@ -18,7 +18,7 @@ export function customToastSuccess(text: string) {
 // danger
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export function customToastDanger(text?: string) {
+export function ToastDanger(text?: string) {
     return (
         toast.error(
             text ? text : "Si è verificato un errore. Riprova.",

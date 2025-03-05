@@ -1,6 +1,6 @@
 'use client'
 
-// next
+// next #TODO
 import { useRouter, useParams } from 'next/navigation'
 
 // icons
@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 // interface
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-interface LayoutProps {
+interface ModalProps {
     children: React.ReactNode;
     name?: string;
     customName?: string;
@@ -29,7 +29,7 @@ interface LayoutProps {
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function CustomModal({ children, name, customName, description, icon, id, open, close, small = false }: LayoutProps) {
+export default function Modal({ children, name, customName, description, icon, id, open, close, small = false }: ModalProps) {
 
     // router e params
     const router = useRouter()

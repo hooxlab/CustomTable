@@ -13,7 +13,7 @@ import { Table } from "@tanstack/react-table"
 // interface
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-interface CustomTablePaginationProps<T> {
+interface HTablePaginationProps<T> {
     table: Table<T>;
     isFilter: boolean;
     info: { pageIndex: number; rowCount: number; pageSize: number; }
@@ -23,7 +23,7 @@ interface CustomTablePaginationProps<T> {
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export function CustomTablePagination<T>({ table, info, isFilter }: CustomTablePaginationProps<T>) {
+export default function HTablePagination<T>({ table, info, isFilter }: HTablePaginationProps<T>) {
 
     const buttonList = [
         {

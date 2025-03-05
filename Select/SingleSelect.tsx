@@ -4,10 +4,13 @@ import { useMemo } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 // axios
-import { apiClient } from "@/utils/interseptor"
+import { apiClient } from "@/utils/Interceptor"
 
 // query
 import { useQuery } from '@tanstack/react-query'
+
+// components
+import Loader from "@/components/custom/CustomTable/Loader"
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
@@ -18,14 +21,25 @@ export interface dataProps {
     select_title: string;
 }
 
-export interface CustomSingleSelectProps {
-    selected: { id: string; name: string; };
-    onChange: (value: string, text: string) => void;
+export interface SingleSelectProps {
+
+    // general
+    placeholder?: string;
+
+    general: {
+        name: string;
+        value?: string;
+        title?: string
+    }
+
+    // change and seleceted
+    selected: string;
+    onChange: (value: string) => void;
 
     // form
     onBlur?: () => void;
 
-    // url = dati da api | options = dati fissi
+    // api or fixed data
     url?: string;
     values?: dataProps[]
 }
@@ -34,7 +48,7 @@ export interface CustomSingleSelectProps {
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function CustomSingleSelect({ selected, onChange, values, url }: CustomSingleSelectProps) {
+export default function SingleSelect({ placeholder, general, selected, onChange, values, url }: SingleSelectProps) {
 
     {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         get
@@ -47,14 +61,18 @@ export default function CustomSingleSelect({ selected, onChange, values, url }: 
     }
 
     const { data, isLoading } = useQuery({
-        queryKey: ["multi_select"],
+        queryKey: [general.name],
         queryFn: getData,
         enabled: !!url
     })
 
     const options = useMemo<dataProps[]>(() => {
         if (!url && values) return values
-        return data
+
+        const opz = data ? data.results.map((el: { [key: string]: any }) => (
+            { select_value: el[general.value || "select_value"], select_title: el[general.title || "select_title"] }
+        )) : []
+        return opz
     }, [data])
 
     {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -62,15 +80,17 @@ export default function CustomSingleSelect({ selected, onChange, values, url }: 
     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
 
     return (
-        <Select
-            value={selected.name}
-            onValueChange={() => onChange}
-        >
-            <SelectTrigger className="text-xs w-full">
-                <SelectValue placeholder="Seleziona elementi" />
+        <Select value={selected} onValueChange={(value) => onChange(value)}>
+            <SelectTrigger className="text-xs h-8 w-full bg-background border-background">
+                <SelectValue placeholder={placeholder || "Seleziona elementi"} />
             </SelectTrigger>
             <SelectContent>
-                {options?.map((option) => (
+                {isLoading && (
+                    <div className="p-2">
+                        <Loader size="sm" />
+                    </div>
+                )}
+                {!isLoading && options?.map((option) => (
                     <SelectItem key={option.select_value} value={option.select_value}>
                         {option.select_title}
                     </SelectItem>

@@ -23,7 +23,7 @@ type dateRangeProps = {
     to?: Date;
 }
 
-export interface CustomRangeDatePickerProps {
+export interface RangeDatePickerProps {
     date?: dateRangeProps;
     onChange: (range: dateRangeProps | undefined) => void;
     onClose?: (open: boolean) => void;
@@ -33,7 +33,7 @@ export interface CustomRangeDatePickerProps {
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export function CustomRangeDatePicker({ date, onChange, onClose }: CustomRangeDatePickerProps) {
+export default function RangeDatePicker({ date, onChange, onClose }: RangeDatePickerProps) {
 
     // open / close
     const [isOpen, setIsOpen] = useState(false)

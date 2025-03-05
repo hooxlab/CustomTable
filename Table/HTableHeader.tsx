@@ -12,7 +12,7 @@ import { Header } from "@tanstack/react-table"
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function CustomTableHeader<T>({ header }: { header: Header<T, unknown> }) {
+export default function HTableHeader<T>({ header }: { header: Header<T, unknown> }) {
     return (
         <section className="flex items-center gap-2 relative group">
 

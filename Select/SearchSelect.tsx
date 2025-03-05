@@ -1,13 +1,13 @@
 import { useState, useMemo } from "react"
 
 // axios
-import { apiClient } from "@/utils/interseptor"
+import { apiClient } from "@/utils/Interceptor"
 
 // query
 import { useQuery } from '@tanstack/react-query'
 
 // components
-import CustomLoader from "@/components/custom/customLoader"
+import Loader from "@/components/custom/CustomTable/Loader"
 
 // shad
 import { Button } from "@/components/ui/button"
@@ -26,14 +26,25 @@ export interface dataProps {
     select_title: string;
 }
 
-export interface CustomSelectProps {
-    selected: { id: string; name: string; };
-    onChange: (value: string, text: string) => void;
+export interface SearchSelectProps {
+
+    // general
+    placeholder?: string;
+
+    general: {
+        name: string;
+        value?: string;
+        title?: string
+    }
+
+    // change and seleceted
+    selected: string;
+    onChange: (value: string) => void;
 
     // form
     onBlur?: () => void;
 
-    // url = dati da api | options = dati fissi
+    // api or fixed data
     url?: string;
     values?: dataProps[]
 }
@@ -42,7 +53,7 @@ export interface CustomSelectProps {
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export function CustomSelect({ selected, onChange, onBlur, url, values }: CustomSelectProps) {
+export default function SearchSelect({ placeholder, general, selected, onChange, onBlur, url, values }: SearchSelectProps) {
 
     // search
     const [search, setSearch] = useState("")
@@ -61,23 +72,19 @@ export function CustomSelect({ selected, onChange, onBlur, url, values }: Custom
     }
 
     const { data, isLoading } = useQuery({
-        queryKey: ["multi_select", search],
+        queryKey: [general.name, search],
         queryFn: getData,
         enabled: !!url
     })
 
     const options = useMemo<dataProps[]>(() => {
         if (!url && values) return values
-        return data
+
+        const opz = data ? data.results.map((el: { [key: string]: any }) => (
+            { select_value: el[general.value || "select_value"], select_title: el[general.title || "select_title"] }
+        )) : []
+        return opz
     }, [data])
-
-    {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        loader
-    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
-
-    if (isLoading) {
-        return <CustomLoader />
-    }
 
     {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         code
@@ -92,29 +99,28 @@ export function CustomSelect({ selected, onChange, onBlur, url, values }: Custom
             }}
         >
             <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="w-full justify-between" role="combobox">
-                    {selected.name ? selected.name : "Seleziona elemento"}
+                <Button variant="outline" size="sm" className={`w-full justify-between ${selected || 'text-muted-foreground'}`} role="combobox">
+                    {selected ? selected : placeholder ? placeholder : "Seleziona elemento"}
                     <ChevronsUpDown className="opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[335px] left-0 p-0">
+            <PopoverContent className="min-w-[var(--radix-popover-trigger-width)] left-0 p-0">
                 <Command>
                     <CommandInput className="text-xs" placeholder="Cerca..." value={search} onValueChange={setSearch} />
                     <CommandList>
-                        <CommandEmpty className="text-destructive text-xs py-4 text-center">Nessun elemento trovato.</CommandEmpty>
+                        <CommandEmpty className="text-xs p-4 text-center">
+                            {isLoading && <Loader size="sm" />}
+                            {!isLoading && <span className="text-destructive">Nessun elemento trovato.</span>}
+                        </CommandEmpty>
                         <CommandGroup>
                             {options.map((el) => {
                                 return (
                                     <CommandItem
-                                        key={el.select_value} value={el.select_title} className="flex justify-between text-xs"
-                                        onSelect={(title) => {
-                                            const value = options.find((el) => el.select_title == title)?.select_value || ''
-                                            onChange(value, title)
-                                            setIsOpen(false)
-                                        }}
+                                        key={el.select_value} value={el.select_value} className="flex justify-between text-xs"
+                                        onSelect={(value) => { onChange(value); setIsOpen(false) }}
                                     >
                                         {el.select_title}
-                                        {selected.id && selected.id == el.select_value && (<Check className={`size-4`} />)}
+                                        {selected && selected == el.select_value && (<Check className={`size-4`} />)}
                                     </CommandItem>
                                 )
                             })}

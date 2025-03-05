@@ -18,7 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 // interface
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export interface CustomDatePickerProps {
+export interface DatePickerProps {
     value?: string;
     disabled?: boolean;
     onChange: (date?: string) => void;
@@ -29,7 +29,7 @@ export interface CustomDatePickerProps {
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function CustomDatePicker({ value, onChange, onBlur, disabled = false }: CustomDatePickerProps) {
+export default function DatePicker({ value, onChange, onBlur, disabled = false }: DatePickerProps) {
 
     // open / close
     const [isOpen, setIsOpen] = useState(false)
@@ -60,5 +60,3 @@ function CustomDatePicker({ value, onChange, onBlur, disabled = false }: CustomD
         </Popover>
     )
 }
-
-export { CustomDatePicker }

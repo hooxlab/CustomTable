@@ -8,10 +8,10 @@ import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 
 // components
-import CustomLoader from "@/components/custom/customLoader"
+import Loader from "@/components/custom/CustomTable/Loader"
 
 // axios
-import { apiClient } from "@/utils/interseptor"
+import { apiClient } from "@/utils/Interceptor"
 
 // query
 import { useQuery } from '@tanstack/react-query'
@@ -28,7 +28,7 @@ export interface optionsProps {
     select_title: string;
 }
 
-export interface CustomMultiSelectProps {
+export interface MultiSelectProps {
 
     selected: string[];
     toggleSelection: (element: string) => void;
@@ -43,7 +43,7 @@ export interface CustomMultiSelectProps {
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export function CustomMultiSelect({ url, values, toggleSelection, clearSelections, selected }: CustomMultiSelectProps) {
+export default function MultiSelect({ url, values, toggleSelection, clearSelections, selected }: MultiSelectProps) {
 
     {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         get
@@ -71,7 +71,7 @@ export function CustomMultiSelect({ url, values, toggleSelection, clearSelection
     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
 
     if (isLoading) {
-        return <CustomLoader />
+        return <Loader />
     }
 
     {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
