@@ -5,9 +5,9 @@ import { useState, useEffect, useMemo, useCallback } from "react"
 // components
 import Loader from "@/components/custom/CustomTable/Loader"
 import Modal from "@/components/custom/CustomTable/Modal"
-import HTableHeader from "@/components/custom/CustomTable/Table/HTableHeader"
-import HTablePagination from "@/components/custom/CustomTable/Table/HTablePagination"
-import HTableToolBar from "@/components/custom/CustomTable/Table/HTableToolBar"
+import HTableHeader from "@/components/custom/CustomTable/Table/components/HTableHeader"
+import HTablePagination from "@/components/custom/CustomTable/Table/components/HTablePagination"
+import HTableToolBar from "@/components/custom/CustomTable/Table/components/HTableToolBar"
 
 
 // shad
@@ -70,6 +70,12 @@ interface HTableProps<T> {
     // settings
     settings?: { search: boolean; create: boolean; import: boolean; export: boolean; filter: boolean; }
 
+    // custom elements in toolbar
+    customToolBarElements?: {
+        top?: React.ReactNode;
+        bottom?: React.ReactNode;
+    }
+
     // filter table
     filterFields?: filterFieldsProps[]
 
@@ -102,6 +108,7 @@ export default function HTable<T>({
     crud = { read: true, update: true, delete: true },
 
     settings = { search: true, create: true, import: true, export: true, filter: true },
+    customToolBarElements,
 
     filterFields = [],
 
@@ -168,7 +175,7 @@ export default function HTable<T>({
 
     // filter
     const relationshipsFilter = useCallback((row: Row<T>) => {
-        if (isFilter && relationships) {
+        if (isFilter.active && relationships) {
             effectiveSetFilters((prev) => {
                 const element = String((row.original as { [key: string]: any })[primaryKey])
                 const currentArray = prev[effectiveFilterName] || []
@@ -185,7 +192,7 @@ export default function HTable<T>({
 
     // checked
     const checkedFilter = useCallback((row: Row<T>) => {
-        if (isFilter && relationships) {
+        if (isFilter.active && relationships) {
             if (effectiveFilters[effectiveFilterName] && effectiveFilters[effectiveFilterName].includes(String((row.original as { [key: string]: any })[primaryKey]))) return true
             return false
         }
@@ -359,12 +366,12 @@ export default function HTable<T>({
                 <HTableToolBar<T>
                     table={table}
                     isFilter={isFilter}
-                    grouping={grouping}
                     settings={settings}
                     storage={{ exist: storageExists, reset: resetLocalStorage }}
                     exportData={() => exportFunction()}
                     filterFields={filterFields}
                     navigate={navigate}
+                    customElemnts={customToolBarElements}
                 />
             </div>
 
@@ -374,13 +381,13 @@ export default function HTable<T>({
                 <TableHeader>
                     {table.getHeaderGroups().map((headerGroup) => (
                         <TableRow key={headerGroup.id} className="*:px-4 *:border">
-                            {isFilter && (<TableHead></TableHead>)}
+                            {isFilter.active && (<TableHead></TableHead>)}
                             {headerGroup.headers.map((header) => (
                                 <TableHead key={header.id} style={{ width: `${header.getSize()}px` }} className="text-xs">
                                     <HTableHeader header={header} />
                                 </TableHead>
                             ))}
-                            {!isFilter && Object.entries(crud).some(([, value]) => value) && <TableHead></TableHead>}
+                            {!isFilter.active && Object.entries(crud).some(([, value]) => value) && <TableHead></TableHead>}
                         </TableRow>
                     ))}
                 </TableHeader>
@@ -401,7 +408,7 @@ export default function HTable<T>({
                                     <TableRow key={row.id} className="*:px-4 *:border cursor-pointer *:text-xs" onClick={() => relationshipsFilter(row)}>
 
                                         {/* checkbox */}
-                                        {isFilter && (
+                                        {isFilter.active && (
                                             <TableCell className="w-10 text-center [&:has([role=checkbox])]:pr-4">
                                                 <Checkbox checked={checkedFilter(row)} />
                                             </TableCell>
@@ -431,7 +438,7 @@ export default function HTable<T>({
                                         ))}
 
                                         {/* crud */}
-                                        {!isFilter && Object.entries(crud).some(([, value]) => value) && !isFilter && (
+                                        {!isFilter.active && Object.entries(crud).some(([, value]) => value) && (
                                             <TableCell className="w-40">
                                                 <section className="flex justify-center gap-2">
                                                     {crud.read && (
@@ -479,21 +486,21 @@ export default function HTable<T>({
                 />
             )}
 
-            {/* TODO */}
             {/* modal delete */}
-            {/* <CustomModal
-                customName="Elimina elemento"
-                description="Una volta eliminato non sarà più possibile recuperarlo."
+            <Modal
                 icon={<SquareX className="size-6" />}
+                title="Elimina elemento"
+                description="Una volta eliminato non sarà più possibile recuperarlo."
                 open={dialogDelete.open}
-                small={true}
+                size="sm"
                 close={() => setDialogDelete({ id: "", open: false })}
+                navigate={navigate}
             >
                 <div className="flex flex-col gap-4 mt-8">
                     <Button size="lg" variant="destructive" onClick={() => deleteRow(dialogDelete.id)}>Conferma</Button>
                     <Button size="lg" variant="ghost" onClick={() => setDialogDelete({ id: "", open: false })}>Annulla</Button>
                 </div>
-            </CustomModal> */}
+            </Modal>
 
         </>
     )

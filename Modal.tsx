@@ -1,10 +1,7 @@
 'use client'
 
-// next #TODO
-import { useRouter, useParams } from 'next/navigation'
-
 // icons
-import { SquarePlus, SquarePen } from "lucide-react"
+import { Settings2 } from "lucide-react"
 
 // shad
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
@@ -14,50 +11,66 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 interface ModalProps {
+
+    // codice
     children: React.ReactNode;
-    name?: string;
-    customName?: string;
-    description?: string;
+
+    // header
     icon?: React.ReactNode;
-    small?: boolean;
-    id?: string;
-    open?: boolean;
+    title: string;
+    description?: string;
+
+    // size
+    size?: string;
+
+    // open / close modal
+    open: boolean;
     close?: () => void;
+
+    // router
+    navigate: any;
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function Modal({ children, name, customName, description, icon, id, open, close, small = false }: ModalProps) {
+export default function Modal({
+    children,
 
-    // router e params
-    const router = useRouter()
-    const params = useParams()
+    icon,
+    title,
+    description,
 
+    size = "md",
+
+    open,
+    close,
+    navigate
+}: ModalProps) {
     return (
         <>
             <Dialog
-                open={typeof open !== "undefined" ? open : true}
+                open={open}
                 onOpenChange={(isOpen) => {
                     if (!isOpen) {
                         if (close) close()
-                        else router.back()
+                        else navigate()
                     }
                 }}
             >
                 <DialogContent
-                    className={`[&_.absolute.right-4.top-4]:hidden ${!small && "min-w-[900px]"}`}
+                    className={`[&_.absolute.right-4.top-4]:hidden ${size == "md" && "min-w-[900px]"}`}
                     onInteractOutside={(event) => event.preventDefault()}
                     onOpenAutoFocus={(event) => event.preventDefault()}
                 >
                     <DialogHeader>
                         <DialogTitle className="text-xl flex items-center gap-2">
-                            {icon ? icon : (params.id || id) ? <SquarePen className="size-6" /> : <SquarePlus className="size-6" />}
-                            {customName ? customName : `${params.id || id ? 'Modifica' : 'Aggiungi'} ${name}`}
+                            {icon || <Settings2 className='size-6' />}
+                            {title || "Aggiungi o aggiorna elemento"}
                         </DialogTitle>
                         <DialogDescription>
-                            {description ? description : params.id || id ? "Modifica i dati per aggiornare questo elemento" : "Compila il form per aggiungere il nuovo elemento"}
+                            {description || "Compila il form per aggiungere o aggiornarne un elemento"}
                         </DialogDescription>
                     </DialogHeader>
                     {children}

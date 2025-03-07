@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 
 // tanstack
 import { Table, Header, Column } from "@tanstack/react-table"
@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 // components
-import HTableToolBarFilter from "@/components/custom/CustomTable/Table/HTableToolBarFilter"
+import HTableToolBarFilter from "@/components/custom/CustomTable/Table/components/HTableToolBarFilter"
 
 // export excel
 import ExcelJS from 'exceljs'
@@ -50,8 +50,7 @@ export interface HTableToolBarProps<T> {
     // filter
     isFilter: { active: boolean; slim: boolean; };
 
-    // grouping and settings
-    grouping: string[];
+    // settings
     settings: {
         search: boolean;
         create: boolean;
@@ -69,6 +68,12 @@ export interface HTableToolBarProps<T> {
 
     // router
     navigate: any;
+
+    // custom elements
+    customElemnts?: {
+        top?: React.ReactNode;
+        bottom?: React.ReactNode;
+    }
 }
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -77,13 +82,13 @@ export interface HTableToolBarProps<T> {
 
 export default function HTableToolBar<T>({
     table,
-    exportData,
     isFilter,
-    grouping,
     settings,
     storage,
+    exportData,
     filterFields = [],
-    navigate
+    navigate,
+    customElemnts
 }: HTableToolBarProps<T>) {
 
     // init filter
@@ -121,6 +126,7 @@ export default function HTableToolBar<T>({
 
     const leftColumns = table.getState()?.columnPinning?.left ?? []
     const rightColumns = table.getState()?.columnPinning?.right ?? []
+    const grouping = table.getState()?.grouping ?? []
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // search state for delay
@@ -205,6 +211,7 @@ export default function HTableToolBar<T>({
                             </div>
                         )}
                     </div>
+                    {customElemnts?.top}
                 </section>
             )}
 
@@ -362,6 +369,8 @@ export default function HTableToolBar<T>({
                                 {loading ? <Loader2 className="size-4 animate-spin" /> : <FileDown className="size-4" />} Esporta
                             </Button>
                         )}
+
+                        {customElemnts?.bottom}
 
                         {settings.filter && filterFields?.length > 0 && (
                             <>
