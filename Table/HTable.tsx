@@ -409,7 +409,7 @@ export default function HTable<T>({
 
                                         {/* checkbox */}
                                         {isFilter.active && (
-                                            <TableCell className="w-10 text-center [&:has([role=checkbox])]:pr-4">
+                                            <TableCell className={`text-center ${!isFilter.slim ? "w-10 [&:has([role=checkbox])]:pr-4" : "[&:has([role=checkbox])]:px-0 [&:has([role=checkbox])]:py-1 w-2"}`}>
                                                 <Checkbox checked={checkedFilter(row)} />
                                             </TableCell>
                                         )}
@@ -417,6 +417,7 @@ export default function HTable<T>({
                                         {/* data */}
                                         {row.getVisibleCells().map((cell) => (
                                             <TableCell
+                                                className={`${isFilter.slim && "px-0 py-1"}`}
                                                 key={cell.id}
                                                 onDoubleClick={() => {
                                                     if (row.getIsGrouped()) return
