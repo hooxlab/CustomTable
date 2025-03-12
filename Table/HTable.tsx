@@ -58,7 +58,7 @@ interface HTableProps<T> {
     columns: ColumnDef<T>[]
 
     // footer
-    showTotals?: boolean,
+    totalsUrl?: string,
 
     // filter
     isFilter?: { active: boolean; slim: boolean; };
@@ -103,7 +103,7 @@ export default function HTable<T>({
 
     columns,
 
-    showTotals = false,
+    totalsUrl = "",
 
     isFilter = { active: false, slim: false },
 
@@ -297,7 +297,7 @@ export default function HTable<T>({
         staleTime: 1000,
         queryFn: async () => fetchTotals(),
         placeholderData: keepPreviousData,
-        enabled: showTotals
+        enabled: totalsUrl != ""
     })
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -416,7 +416,7 @@ export default function HTable<T>({
                     ))}
 
                     {/* totals top */}
-                    {showTotals &&
+                    {totalsUrl != "" &&
                         table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id} className="*:px-4 *:border bg-gray-100 hover:bg-gray-100">
                                 {headerGroup.headers.map((header) => (
@@ -514,7 +514,7 @@ export default function HTable<T>({
                 </TableBody>
 
                 {/* totals bottom */}
-                {showTotals &&
+                {totalsUrl != "" &&
                     <TableFooter className="sticky bottom-0">
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id} className="*:px-4 *:border bg-gray-100 hover:bg-gray-100">
