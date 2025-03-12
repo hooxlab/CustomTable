@@ -11,7 +11,7 @@ import HTableToolBar from "@/components/custom/CustomTable/Table/components/HTab
 
 
 // shad
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 
@@ -57,6 +57,8 @@ interface HTableProps<T> {
     // colums
     columns: ColumnDef<T>[]
 
+    showTotals?: boolean,
+
     // filter
     isFilter?: { active: boolean; slim: boolean; };
 
@@ -99,6 +101,8 @@ export default function HTable<T>({
     urlParams = "",
 
     columns,
+
+    showTotals = false,
 
     isFilter = { active: false, slim: false },
 
@@ -276,6 +280,16 @@ export default function HTable<T>({
     // total elements
     const rowCount = useMemo(() => data?.tot_records ?? 0, [data])
 
+    // total column
+    const [totals, setTotals] = useState({})
+    useEffect(() => {
+        if (showTotals) {
+            apiClient.get(url, { params: { ...dataParams, "totals": true} }).then((res) => {
+                setTotals(res.data);
+            });
+        }
+    }, [showTotals, setTotals])
+
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // table
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -390,6 +404,23 @@ export default function HTable<T>({
                             {!isFilter.active && Object.entries(crud).some(([, value]) => value) && <TableHead></TableHead>}
                         </TableRow>
                     ))}
+
+
+                    {showTotals &&
+
+                        table.getHeaderGroups().map((headerGroup) => (
+                            <TableRow key={headerGroup.id} className="*:px-4 *:border bg-gray-200">
+                                {isFilter.active && (<TableHead></TableHead>)}
+                                {headerGroup.headers.map((header) => (
+                                    <TableHead key={header.id} style={{ width: `${header.getSize()}px` }} className="text-xs">
+                                        <strong>{totals[header.id] && totals[header.id]}</strong>
+                                    </TableHead>
+                                ))}
+                                {!isFilter.active && Object.entries(crud).some(([, value]) => value) && <TableHead></TableHead>}
+                            </TableRow>
+                        ))
+
+                    }
                 </TableHeader>
 
                 <TableBody>
@@ -476,6 +507,23 @@ export default function HTable<T>({
                     )}
 
                 </TableBody>
+
+                {showTotals &&
+                    <TableFooter>
+                        {table.getHeaderGroups().map((headerGroup) => (
+                            <TableRow key={headerGroup.id} className="*:px-4 *:border bg-gray-200">
+                                {isFilter.active && (<TableHead></TableHead>)}
+                                {headerGroup.headers.map((header) => (
+                                    <TableHead key={header.id} style={{ width: `${header.getSize()}px` }} className="text-xs">
+                                        <strong>{totals[header.id] && totals[header.id]}</strong>
+                                    </TableHead>
+                                ))}
+                                {!isFilter.active && Object.entries(crud).some(([, value]) => value) && <TableHead></TableHead>}
+                            </TableRow>
+                        ))}
+                    </TableFooter>
+                }
+
             </Table>
 
             {/* pagination */}
