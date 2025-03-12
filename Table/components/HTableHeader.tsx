@@ -9,10 +9,18 @@ import { ArrowUp, ArrowDown, ArrowUpDown, Group, Settings2, ArrowLeftToLine, Arr
 import { Header } from "@tanstack/react-table"
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// interface
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+interface HTableHeaderProps<T> {
+    header: Header<T, unknown>;
+}
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function HTableHeader<T>({ header }: { header: Header<T, unknown> }) {
+export default function HTableHeader<T>({ header }: HTableHeaderProps<T>) {
     return (
         <section className="flex items-center gap-2 relative group">
 
@@ -41,16 +49,14 @@ export default function HTableHeader<T>({ header }: { header: Header<T, unknown>
                 <>
                     <div onClick={() => header.column.toggleSorting()} className="cursor-pointer flex items-center gap-2">
                         {typeof header.column.columnDef.header === "function" ? header.column.columnDef.header(header.getContext()) : header.column.columnDef.header}
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="sm" className="px-2">
                             {header.column.getIsSorted() === "asc" ?
-                                <ArrowUp className="size-4 text-primary" /> :
-                                header.column.getIsSorted() === "desc" ? <ArrowDown className="size-4 text-primary" /> :
-                                    <ArrowUpDown className="size-4" />
+                                <ArrowUp className="text-primary" /> : header.column.getIsSorted() === "desc" ? <ArrowDown className="text-primary" /> : <ArrowUpDown />
                             }
                         </Button>
                     </div>
                     {header.column.getIsSorted() && (
-                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => header.column.clearSorting()}>
+                        <Button variant="ghost" size="sm" className="px-2 text-destructive hover:text-destructive" onClick={() => header.column.clearSorting()}>
                             <X />
                         </Button>
                     )}

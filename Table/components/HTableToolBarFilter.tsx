@@ -10,9 +10,9 @@ import { RouteOff, Settings2, Trash, X } from "lucide-react"
 // components
 import RangeDatePicker from "@/components/custom/CustomTable/Date/RangeDatePicker"
 import MultiSelect from "@/components/custom/CustomTable/Select/MultiSelect"
-import SingleSelect from "@/components/custom/CustomTable/Select/SingleSelect"
+// import SingleSelect from "@/components/custom/CustomTable/Select/SingleSelect"
 import DatePicker from "@/components/custom/CustomTable/Date/DatePicker"
-import SearchSelect from "@/components/custom/CustomTable/Select/SearchSelect"
+// import SearchSelect from "@/components/custom/CustomTable/Select/SearchSelect"
 
 // date
 import { format } from 'date-fns'
@@ -154,24 +154,25 @@ export default function HTableToolBarFilter({ filterFields, actions, pendingFilt
 
                         case 'select':
                             return (
-                                <div key={index}>
-                                    <Label className="text-xs">{el.label}</Label>
-                                    <div className="flex gap-2 items-center mt-1">
-                                        <SearchSelect
-                                            selected={pendingFilter?.[el.field] || {}}
-                                            onChange={(value, title) => setPendingFilter(prev => ({ ...prev, [el.field]: { id: value, name: title } }))}
-                                            values={el?.options || undefined}
-                                            url={el?.url || undefined}
-                                        />
-                                        {pendingFilter?.[el.field] && (
-                                            <div>
-                                                <Button size="sm" className="px-2" variant="destructive" onClick={() => resetFilter(el.field)}>
-                                                    <Trash />
-                                                </Button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+                                <></>
+                                // <div key={index}>
+                                //     <Label className="text-xs">{el.label}</Label>
+                                //     <div className="flex gap-2 items-center mt-1">
+                                //         <SearchSelect
+                                //             selected={pendingFilter?.[el.field] || {}}
+                                //             onChange={(value, title) => setPendingFilter(prev => ({ ...prev, [el.field]: { id: value, name: title } }))}
+                                //             values={el?.options || undefined}
+                                //             url={el?.url || undefined}
+                                //         />
+                                //         {pendingFilter?.[el.field] && (
+                                //             <div>
+                                //                 <Button size="sm" className="px-2" variant="destructive" onClick={() => resetFilter(el.field)}>
+                                //                     <Trash />
+                                //                 </Button>
+                                //             </div>
+                                //         )}
+                                //     </div>
+                                // </div>
                             )
 
                         // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -200,24 +201,25 @@ export default function HTableToolBarFilter({ filterFields, actions, pendingFilt
 
                         case 'boolean':
                             return (
-                                <div key={index}>
-                                    <Label className="text-xs">{el.label}</Label>
-                                    <div className="flex gap-2 items-center mt-1">
-                                        <SingleSelect
-                                            selected={pendingFilter?.[el.field] || {}}
-                                            onChange={(value, title) => setPendingFilter(prev => ({ ...prev, [el.field]: { id: value, name: title } }))}
-                                            values={el?.options || undefined}
-                                            url={el?.url || undefined}
-                                        />
-                                        {pendingFilter?.[el.field] && (
-                                            <div>
-                                                <Button size="sm" className="px-2" variant="destructive" onClick={() => resetFilter(el.field)}>
-                                                    <Trash />
-                                                </Button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+                                <></>
+                                // <div key={index}>
+                                //     <Label className="text-xs">{el.label}</Label>
+                                //     <div className="flex gap-2 items-center mt-1">
+                                //         <SingleSelect
+                                //             selected={pendingFilter?.[el.field] || {}}
+                                //             onChange={(value, title) => setPendingFilter(prev => ({ ...prev, [el.field]: { id: value, name: title } }))}
+                                //             values={el?.options || undefined}
+                                //             url={el?.url || undefined}
+                                //         />
+                                //         {pendingFilter?.[el.field] && (
+                                //             <div>
+                                //                 <Button size="sm" className="px-2" variant="destructive" onClick={() => resetFilter(el.field)}>
+                                //                     <Trash />
+                                //                 </Button>
+                                //             </div>
+                                //         )}
+                                //     </div>
+                                // </div>
                             )
 
 

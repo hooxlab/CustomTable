@@ -57,6 +57,7 @@ interface HTableProps<T> {
     // colums
     columns: ColumnDef<T>[]
 
+    // footer
     showTotals?: boolean,
 
     // filter
@@ -280,15 +281,24 @@ export default function HTable<T>({
     // total elements
     const rowCount = useMemo(() => data?.tot_records ?? 0, [data])
 
-    // total column
-    const [totals, setTotals] = useState({})
-    useEffect(() => {
-        if (showTotals) {
-            apiClient.get(url, { params: { ...dataParams, "totals": true} }).then((res) => {
-                setTotals(res.data);
-            });
-        }
-    }, [showTotals, setTotals])
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // footer
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    const fetchTotals = async () => {
+        const params = { ...dataParams, "totals": true }
+        const res = await apiClient.get(url, { params: params })
+        return res.data
+    }
+
+    // data
+    const totals = useQuery({
+        queryKey: [`${tableName}_totals`, url, dataParams],
+        staleTime: 1000,
+        queryFn: async () => fetchTotals(),
+        placeholderData: keepPreviousData,
+        enabled: showTotals
+    })
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // table
@@ -390,14 +400,14 @@ export default function HTable<T>({
             </div>
 
             {/* table */}
-            <Table className="min-w-full max-w-full overflow-hidden">
+            <Table>
 
-                <TableHeader>
+                <TableHeader className="sticky top-0">
                     {table.getHeaderGroups().map((headerGroup) => (
                         <TableRow key={headerGroup.id} className="*:px-4 *:border">
-                            {isFilter.active && (<TableHead></TableHead>)}
+                            {isFilter.active && (<TableHead className={`${isFilter.slim && 'h-4'}`}></TableHead>)}
                             {headerGroup.headers.map((header) => (
-                                <TableHead key={header.id} style={{ width: `${header.getSize()}px` }} className="text-xs">
+                                <TableHead key={header.id} style={{ width: `${header.getSize()}px` }} className={`text-xs ${isFilter.slim && 'h-4'}`}>
                                     <HTableHeader header={header} />
                                 </TableHead>
                             ))}
@@ -405,21 +415,17 @@ export default function HTable<T>({
                         </TableRow>
                     ))}
 
-
+                    {/* totals top */}
                     {showTotals &&
-
                         table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id} className="*:px-4 *:border bg-gray-200">
-                                {isFilter.active && (<TableHead></TableHead>)}
+                            <TableRow key={headerGroup.id} className="*:px-4 *:border bg-gray-100 hover:bg-gray-100">
                                 {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id} style={{ width: `${header.getSize()}px` }} className="text-xs">
-                                        <strong>{totals[header.id] && totals[header.id]}</strong>
-                                    </TableHead>
+                                    <TableCell key={header.id} style={{ width: `${header.getSize()}px` }} className="text-xs">
+                                        <strong>{totals.data && totals.data[header.id] && totals.data[header.id]}</strong>
+                                    </TableCell>
                                 ))}
-                                {!isFilter.active && Object.entries(crud).some(([, value]) => value) && <TableHead></TableHead>}
                             </TableRow>
                         ))
-
                     }
                 </TableHeader>
 
@@ -505,35 +511,34 @@ export default function HTable<T>({
                             )}
                         </>
                     )}
-
                 </TableBody>
 
+                {/* totals bottom */}
                 {showTotals &&
-                    <TableFooter>
+                    <TableFooter className="sticky bottom-0">
                         {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id} className="*:px-4 *:border bg-gray-200">
-                                {isFilter.active && (<TableHead></TableHead>)}
+                            <TableRow key={headerGroup.id} className="*:px-4 *:border bg-gray-100 hover:bg-gray-100">
                                 {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id} style={{ width: `${header.getSize()}px` }} className="text-xs">
-                                        <strong>{totals[header.id] && totals[header.id]}</strong>
-                                    </TableHead>
+                                    <TableCell key={header.id} style={{ width: `${header.getSize()}px` }} className="text-xs">
+                                        <strong>{totals.data && totals.data[header.id] && totals.data[header.id]}</strong>
+                                    </TableCell>
                                 ))}
-                                {!isFilter.active && Object.entries(crud).some(([, value]) => value) && <TableHead></TableHead>}
                             </TableRow>
                         ))}
                     </TableFooter>
                 }
-
             </Table>
 
             {/* pagination */}
-            {table.getRowModel().rows?.length > 0 && !isFilter.slim && (
-                <HTablePagination<T>
-                    table={table}
-                    isFilter={isFilter.active}
-                    info={{ pageIndex: pagination.pageIndex, rowCount: rowCount, pageSize: pagination.pageSize }}
-                />
-            )}
+            {
+                table.getRowModel().rows?.length > 0 && !isFilter.slim && (
+                    <HTablePagination<T>
+                        table={table}
+                        isFilter={isFilter.active}
+                        info={{ pageIndex: pagination.pageIndex, rowCount: rowCount, pageSize: pagination.pageSize }}
+                    />
+                )
+            }
 
             {/* modal delete */}
             <Modal
