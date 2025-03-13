@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo, useCallback } from "react"
+import { useState, useEffect, useMemo } from "react"
 
 // components
 import Loader from "@/components/custom/CustomTable/Loader"
@@ -26,12 +26,16 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query'
 
 // table
 import {
-    Row, ColumnDef, flexRender, getCoreRowModel, useReactTable,
+    ColumnDef, flexRender, getCoreRowModel, useReactTable,
     getPaginationRowModel,
     SortingState, getSortedRowModel,
     ColumnFiltersState, getFilteredRowModel,
     getGroupedRowModel, getExpandedRowModel
 } from "@tanstack/react-table"
+
+// hook
+import useRelations from "@/components/custom/CustomTable/Table/hook/useRelations"
+
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
@@ -137,10 +141,6 @@ export default function HTable<T>({
     const [storageExists, setStorageExists] = useState(localStorage.getItem(tableName) !== JSON.stringify(initialValues))
     const storedData = storage ? JSON.parse(storage) : initialValues
 
-    // relationship
-    const [relationshipsData, setRelationshipsData] = useState<{ [key: string]: any }>({})
-    const effectiveFilterName = filterName || primaryKey
-
     // modal delete
     const [dialogDelete, setDialogDelete] = useState({ open: false, id: '' })
 
@@ -178,45 +178,16 @@ export default function HTable<T>({
     // relationship
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    // filter
-    const relationshipsFilter = useCallback((row: Row<T>) => {
-        if (isFilter.active && relationships) {
-            effectiveSetFilters((prev) => {
-                const element = String((row.original as { [key: string]: any })[primaryKey])
-                const currentArray = prev[effectiveFilterName] || []
-                const newArray = currentArray.includes(element) ? currentArray.filter((item: string) => item !== element) : [...currentArray, element]
+    const { relationData, checkedFilter, relationshipsFilter } = useRelations({
+        tableName: tableName,
+        relationships: relationships || {},
+        filters: effectiveFilters,
+        active: isFilter.active,
+        filterName: filterName || primaryKey,
+        primaryKey: primaryKey,
+        setFilters: effectiveSetFilters
 
-                if (newArray.length === 0) {
-                    const newFilters = { ...prev }
-                    delete newFilters[effectiveFilterName]
-                    return newFilters
-                } else return { ...prev, [effectiveFilterName]: newArray }
-            })
-        }
-    }, [effectiveSetFilters])
-
-    // checked
-    const checkedFilter = useCallback((row: Row<T>) => {
-        if (isFilter.active && relationships) {
-            if (effectiveFilters[effectiveFilterName] && effectiveFilters[effectiveFilterName].includes(String((row.original as { [key: string]: any })[primaryKey]))) return true
-            return false
-        }
-        return false
-    }, [effectiveFilters])
-
-    // create params relationship
-    useEffect(() => {
-        if (relationships && relationships[tableName]) {
-            let data: { [key: string]: string | string[] } = {}
-            Object.entries(effectiveFilters).map(([key, value]) => {
-                if (relationships[tableName][key]) {
-                    if (typeof value == 'object') data[relationships[tableName][key]] = Object.values(value) as string[]
-                    else data[relationships[tableName][key]] = String(value)
-                }
-            })
-            setRelationshipsData(data)
-        }
-    }, [effectiveFilters])
+    })
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // localstorage
@@ -258,8 +229,8 @@ export default function HTable<T>({
         pageSize: pagination.pageSize,
         order: sorting,
         search: globalFilter,
-        relations: relationshipsData
-    }), [pagination, urlParams, sorting, globalFilter, relationshipsData])
+        relations: relationData
+    }), [pagination, urlParams, sorting, globalFilter, relationData])
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // get
@@ -297,7 +268,7 @@ export default function HTable<T>({
         staleTime: 1000,
         queryFn: async () => fetchTotals(),
         placeholderData: keepPreviousData,
-        enabled: totalsUrl != ""
+        enabled: !!totalsUrl
     })
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -530,15 +501,13 @@ export default function HTable<T>({
             </Table>
 
             {/* pagination */}
-            {
-                table.getRowModel().rows?.length > 0 && !isFilter.slim && (
-                    <HTablePagination<T>
-                        table={table}
-                        isFilter={isFilter.active}
-                        info={{ pageIndex: pagination.pageIndex, rowCount: rowCount, pageSize: pagination.pageSize }}
-                    />
-                )
-            }
+            {table.getRowModel().rows?.length > 0 && !isFilter.slim && (
+                <HTablePagination<T>
+                    table={table}
+                    isFilter={isFilter.active}
+                    info={{ pageIndex: pagination.pageIndex, rowCount: rowCount, pageSize: pagination.pageSize }}
+                />
+            )}
 
             {/* modal delete */}
             <Modal
