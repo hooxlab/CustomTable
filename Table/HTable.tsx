@@ -45,7 +45,10 @@ interface filterFieldsProps {
     type: string;
     label: string;
     field: string;
-    options?: { select_value: string; select_title: string; }[]
+    options?: {
+        select_value: string;
+        select_title: string;
+    }[]
     url?: string;
 }
 
@@ -65,17 +68,30 @@ interface HTableProps<T> {
     totalsUrl?: string,
 
     // filter
-    isFilter?: { active: boolean; slim: boolean; };
+    isFilter?: {
+        active: boolean;
+        slim: boolean;
+    };
 
     // custom filter
     filters?: { [key: string]: any };
     setFilters?: React.Dispatch<React.SetStateAction<{ [key: string]: any }>>;
 
     // crud
-    crud?: { read: boolean; update: boolean; delete: boolean; }
+    crud?: {
+        read: boolean;
+        update: boolean;
+        delete: boolean;
+    }
 
     // settings
-    settings?: { search: boolean; create: boolean; import: boolean; export: boolean; filter: boolean; }
+    settings?: {
+        search: boolean;
+        create: boolean;
+        import: boolean;
+        export: boolean;
+        filter: boolean;
+    }
 
     // custom elements in toolbar
     customToolBarElements?: {
@@ -87,7 +103,7 @@ interface HTableProps<T> {
     filterFields?: filterFieldsProps[]
 
     // router
-    router?: any,
+    router: any,
 
     // relations
     relationships?: { [key: string]: { [key: string]: string } };
@@ -114,9 +130,19 @@ export default function HTable<T>({
     filters,
     setFilters,
 
-    crud = { read: true, update: true, delete: true },
+    crud = {
+        read: true,
+        update: true,
+        delete: true
+    },
 
-    settings = { search: true, create: true, import: true, export: true, filter: true },
+    settings = {
+        search: true,
+        create: true,
+        import: true,
+        export: true,
+        filter: true
+    },
     customToolBarElements,
 
     filterFields = [],
@@ -322,17 +348,6 @@ export default function HTable<T>({
     })
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    // router
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    const navigate = (url: string) => {
-        if (router) router(url)
-        const newUrl = window.location.pathname.endsWith('/') ? window.location.pathname + url : window.location.pathname + '/' + url
-        window.history.pushState({}, '', newUrl)
-        window.dispatchEvent(new Event('popstate'))
-    }
-
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // export
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -365,7 +380,7 @@ export default function HTable<T>({
                     storage={{ exist: storageExists, reset: resetLocalStorage }}
                     exportData={() => exportFunction()}
                     filterFields={filterFields}
-                    navigate={navigate}
+                    navigate={router}
                     customElemnts={customToolBarElements}
                 />
             </div>
@@ -430,8 +445,8 @@ export default function HTable<T>({
                                                 onDoubleClick={() => {
                                                     if (row.getIsGrouped()) return
                                                     const id = (row.original as { _id: string })._id
-                                                    if (crud.read) navigate(`visualizza/${id}`)
-                                                    if (crud.update) navigate(`modifica/${id}`)
+                                                    if (crud.read) router(`/visualizza/${id}`)
+                                                    if (crud.update) router(`/modifica/${id}`)
                                                 }}
                                             >
                                                 {cell.getIsGrouped() && (
@@ -453,19 +468,19 @@ export default function HTable<T>({
                                                     {crud.read && (
                                                         <Button
                                                             variant="ghost" size="sm" className="px-2"
-                                                            onClick={() => navigate(`visualizza/${(row.original as { id: string | number }).id}`)}
+                                                            onClick={() => router(`visualizza/${(row.original as { _id: string })._id}`)}
                                                         ><Eye /></Button>
                                                     )}
                                                     {crud.update && (
                                                         <Button
                                                             variant="ghost" size="sm" className="px-2"
-                                                            onClick={() => navigate(`modifica/${(row.original as { id: string | number }).id}`)}
+                                                            onClick={() => router(`modifica/${(row.original as { _id: string })._id}`)}
                                                         ><Pen /></Button>
                                                     )}
                                                     {crud.delete && (
                                                         <Button
                                                             variant="ghost" size="sm" className="px-2 text-destructive hover:text-destructive"
-                                                            onClick={() => setDialogDelete({ open: true, id: (row.original as { id: string }).id })}
+                                                            onClick={() => setDialogDelete({ open: true, id: (row.original as { _id: string })._id })}
                                                         ><Trash /></Button>
                                                     )}
                                                 </section>
@@ -517,7 +532,6 @@ export default function HTable<T>({
                 open={dialogDelete.open}
                 size="sm"
                 close={() => setDialogDelete({ id: "", open: false })}
-                navigate={navigate}
             >
                 <div className="flex flex-col gap-4 mt-8">
                     <Button size="lg" variant="destructive" onClick={() => deleteRow(dialogDelete.id)}>Conferma</Button>

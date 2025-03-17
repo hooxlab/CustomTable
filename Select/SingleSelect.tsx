@@ -32,6 +32,10 @@ export interface SingleSelectProps {
         title?: string
     }
 
+    // class and disabled
+    className?: string;
+    disabled?: boolean;
+
     // change and seleceted
     selected: string;
     onChange: (value: string) => void;
@@ -48,7 +52,16 @@ export interface SingleSelectProps {
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function SingleSelect({ placeholder, general, selected, onChange, values, url }: SingleSelectProps) {
+export default function SingleSelect({
+    placeholder = "Seleziona elementi",
+    className,
+    general,
+    selected,
+    onChange,
+    values,
+    url,
+    disabled = false
+}: SingleSelectProps) {
 
     {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         get
@@ -70,7 +83,7 @@ export default function SingleSelect({ placeholder, general, selected, onChange,
         if (!url && values) return values
 
         const opz = data ? data.results.map((el: { [key: string]: any }) => (
-            { select_value: el[general.value || "select_value"], select_title: el[general.title || "select_title"] }
+            { select_value: String(el[general.value || "select_value"]), select_title: el[general.title || "select_title"] }
         )) : []
         return opz
     }, [data])
@@ -80,9 +93,9 @@ export default function SingleSelect({ placeholder, general, selected, onChange,
     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
 
     return (
-        <Select value={selected} onValueChange={(value) => onChange(value)}>
-            <SelectTrigger className="text-xs h-8 w-full bg-background border-background">
-                <SelectValue placeholder={placeholder || "Seleziona elementi"} />
+        <Select disabled={disabled} value={selected} onValueChange={(value) => onChange(value)}>
+            <SelectTrigger className={`text-xs h-8 w-full ${className}`}>
+                <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>
                 {isLoading && (
@@ -91,7 +104,7 @@ export default function SingleSelect({ placeholder, general, selected, onChange,
                     </div>
                 )}
                 {!isLoading && options?.map((option) => (
-                    <SelectItem key={option.select_value} value={option.select_value}>
+                    <SelectItem key={String(option.select_value)} value={option.select_value}>
                         {option.select_title}
                     </SelectItem>
                 ))}
