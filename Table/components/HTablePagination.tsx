@@ -52,14 +52,25 @@ export default function HTablePagination<T>({ table, info, isFilter }: HTablePag
         }
     ]
 
+
+
     return (
         <section className="grid lg:grid-cols-2 gap-4 items-center mt-4">
             <div className="flex items-center lg:justify-start justify-end gap-4 *:py-2 *:px-4 *:border *:rounded-md *:text-xs">
                 <div className="flex-1 text-center lg:flex-none lg:text-start">
-                    Pagina {info.pageIndex + 1} di {Math.ceil(info.rowCount / info.pageSize)}
+                    {isFilter ?
+                        <>{info.pageIndex + 1}/{Math.ceil(info.rowCount / info.pageSize)}</>
+                    :
+                        <>Pagina {info.pageIndex + 1} di {Math.ceil(info.rowCount / info.pageSize)}</>
+                    }
                 </div>
                 <div className="flex-1 text-center lg:flex-none lg:text-start">
-                    Elementi totali: {info.rowCount}
+                    {isFilter ?
+                        <>Tot: {info.rowCount}</>
+                        :
+                        <>Elementi totali: {info.rowCount}</>
+                    }
+                    
                 </div>
             </div>
             <div className="flex items-center justify-end gap-4">
@@ -79,6 +90,7 @@ export default function HTablePagination<T>({ table, info, isFilter }: HTablePag
                 <section className="border rounded-md lg:w-auto w-full flex justify-center">
                     <TooltipProvider>
                         {buttonList.map((el, index) => {
+                            if (isFilter && (index === 0 || index === 3)) return null
                             return (
                                 <Tooltip key={index}>
                                     <TooltipTrigger asChild>

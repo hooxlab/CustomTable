@@ -75,7 +75,7 @@ interface HTableProps<T> {
     crud?: { read: boolean; update: boolean; delete: boolean; }
 
     // settings
-    settings?: { search: boolean; create: boolean; import: boolean; export: boolean; filter: boolean; }
+    settings?: { search: boolean; create: boolean; import: boolean; export: boolean; exportAll?:boolean; filter: boolean; }
 
     // custom elements in toolbar
     customToolBarElements?: {
@@ -116,7 +116,7 @@ export default function HTable<T>({
 
     crud = { read: true, update: true, delete: true },
 
-    settings = { search: true, create: true, import: true, export: true, filter: true },
+    settings = { search: true, create: true, import: true, export: true, exportAll: true, filter: true },
     customToolBarElements,
 
     filterFields = [],
@@ -337,8 +337,13 @@ export default function HTable<T>({
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     const exportFunction = async () => {
-        const dataexport = { urlParams: urlParams, nopagination: true, order: sorting, search: globalFilter }
-        const res = await apiClient.get(url, { params: dataexport })
+        
+        const params = { ...dataParams }
+        if (settings["exportAll"]) {
+            params.page = 1
+            params.pageSize = -1
+        }
+        const res = await apiClient.get(url, { params: params })
         return res.data.results
     }
 
@@ -501,7 +506,7 @@ export default function HTable<T>({
             </Table>
 
             {/* pagination */}
-            {table.getRowModel().rows?.length > 0 && !isFilter.slim && (
+            {table.getRowModel().rows?.length > 0 && (
                 <HTablePagination<T>
                     table={table}
                     isFilter={isFilter.active}
