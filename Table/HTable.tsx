@@ -91,6 +91,7 @@ interface HTableProps<T> {
         import: boolean;
         export: boolean;
         filter: boolean;
+        exportAll?:boolean; 
     }
 
     // custom elements in toolbar
@@ -135,13 +136,13 @@ export default function HTable<T>({
         update: true,
         delete: true
     },
-
     settings = {
         search: true,
         create: true,
         import: true,
         export: true,
-        filter: true
+        filter: true,
+        exportAll: true
     },
     customToolBarElements,
 
@@ -352,8 +353,13 @@ export default function HTable<T>({
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     const exportFunction = async () => {
-        const dataexport = { urlParams: urlParams, nopagination: true, order: sorting, search: globalFilter }
-        const res = await apiClient.get(url, { params: dataexport })
+        
+        const params = { ...dataParams }
+        if (settings["exportAll"]) {
+            params.page = 1
+            params.pageSize = -1
+        }
+        const res = await apiClient.get(url, { params: params })
         return res.data.results
     }
 
@@ -516,7 +522,7 @@ export default function HTable<T>({
             </Table>
 
             {/* pagination */}
-            {table.getRowModel().rows?.length > 0 && !isFilter.slim && (
+            {table.getRowModel().rows?.length > 0 && (
                 <HTablePagination<T>
                     table={table}
                     isFilter={isFilter.active}
