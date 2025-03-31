@@ -161,8 +161,12 @@ export default function HTableToolBarFilter({ filterFields, actions, pendingFilt
                                             selected={pendingFilter?.[el.field] || {}}
                                             onChange={(value) => setPendingFilter(prev => ({ ...prev, [el.field]: value }))}
                                             values={el?.options || undefined}
-                                            url={el?.url || undefined}
-                                        />
+                                            url={el?.url || undefined} 
+                                            general={{
+                                                name: "",
+                                                value: undefined,
+                                                title: undefined
+                                            }}                                        />
                                         {pendingFilter?.[el.field] && (
                                             <div>
                                                 <Button size="sm" className="px-2" variant="destructive" onClick={() => resetFilter(el.field)}>

@@ -1,7 +1,15 @@
 import { useMemo } from "react"
 
 // shad
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+    MultiSelector,
+    MultiSelectorContent,
+    MultiSelectorInput,
+    MultiSelectorItem,
+    MultiSelectorList,
+    MultiSelectorTrigger
+} from "@/components/ui/multiselector.tsx"
+
 
 // axios
 import { apiClient } from "@/utils/Interceptor"
@@ -21,7 +29,7 @@ export interface dataProps {
     select_title: string;
 }
 
-export interface SingleSelectProps {
+export interface HLMultiSelectProps {
 
     // general
     placeholder?: string;
@@ -37,8 +45,8 @@ export interface SingleSelectProps {
     disabled?: boolean;
 
     // change and seleceted
-    selected: string;
-    onChange: (value: string) => void;
+    selected: string[];
+    onChange: (value: string[]) => void;
 
     // form
     onBlur?: () => void;
@@ -52,7 +60,7 @@ export interface SingleSelectProps {
 // code
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-export default function SingleSelect({
+export default function HLMultiSelect({
     placeholder = "Seleziona elementi",
     className,
     general,
@@ -61,7 +69,7 @@ export default function SingleSelect({
     values,
     url,
     disabled = false
-}: SingleSelectProps) {
+}: HLMultiSelectProps) {
 
     {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         get
@@ -81,7 +89,7 @@ export default function SingleSelect({
 
     const options = useMemo<dataProps[]>(() => {
         if (!url && values) return values
-
+        console.log(data?.results);
         const opz = data ? data.results.map((el: { [key: string]: any }) => (
             { select_value: String(el[general.value || "select_value"]), select_title: el[general.title || "select_title"] }
         )) : []
@@ -93,25 +101,28 @@ export default function SingleSelect({
     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
 
     return (
-        <Select 
-            disabled={disabled} 
-            value={selected} 
-            onValueChange={(value) => onChange(value)}>
-            <SelectTrigger className={`text-xs h-8 w-full ${className}`}>
-                <SelectValue placeholder={placeholder} />
-            </SelectTrigger>
-            <SelectContent>
-                {isLoading && (
-                    <div className="p-2">
-                        <Loader size="sm" />
-                    </div>
-                )}
-                {!isLoading && options?.map((option) => (
-                    <SelectItem key={String(option.select_value)} value={option.select_value}>
-                        {option.select_title}
-                    </SelectItem>
-                ))}
-            </SelectContent>
-        </Select>
+        <MultiSelector
+            values={selected}
+            onValuesChange={onChange}
+            loop
+        >
+            <MultiSelectorTrigger className={`text-xs h-8 w-full rounded-sm ${className}`}>
+                <MultiSelectorInput placeholder={placeholder} />
+            </MultiSelectorTrigger>
+            <MultiSelectorContent>
+                <MultiSelectorList>
+                    {isLoading && (
+                        <div className="p-2">
+                            <Loader size="sm" />
+                        </div>
+                    )}
+                    {!isLoading && options?.map((option) => (
+                        <MultiSelectorItem key={String(option.select_value)} value={option.select_value}>
+                            {option.select_title}
+                        </MultiSelectorItem>
+                    ))}
+                </MultiSelectorList>
+            </MultiSelectorContent>
+        </MultiSelector>
     )
 }

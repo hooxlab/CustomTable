@@ -52,7 +52,7 @@ export default function MultiSelect({ url, values, toggleSelection, clearSelecti
     const getData = async () => {
         if (!url) return []
         const res = await apiClient.get(url)
-        return res.data
+        return res.data.results
     }
 
     const { data, isLoading } = useQuery({
@@ -114,7 +114,7 @@ export default function MultiSelect({ url, values, toggleSelection, clearSelecti
                         <CommandList>
                             <CommandEmpty className="text-destructive text-xs py-4 text-center">Nessun elemento trovato.</CommandEmpty>
                             <CommandGroup>
-                                {options.map((el) => {
+                                {options?.map((el) => {
                                     return (
                                         <CommandItem className="text-xs" onSelect={toggleSelection} key={el.select_value} value={el.select_value}>
                                             <Checkbox checked={selected.includes(el.select_value)} />
