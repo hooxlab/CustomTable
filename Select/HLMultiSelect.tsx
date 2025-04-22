@@ -19,6 +19,7 @@ import { useQuery } from '@tanstack/react-query'
 
 // components
 import Loader from "@/components/custom/CustomTable/Loader"
+import { ChevronsUpDown } from "lucide-react"
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // interface
@@ -42,7 +43,7 @@ export interface HLMultiSelectProps {
 
     // class and disabled
     className?: string;
-    disabled?: boolean;
+    // disabled?: boolean;
 
     // change and seleceted
     selected: string[];
@@ -67,8 +68,7 @@ export default function HLMultiSelect({
     selected,
     onChange,
     values,
-    url,
-    disabled = false
+    url
 }: HLMultiSelectProps) {
 
     {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -89,7 +89,6 @@ export default function HLMultiSelect({
 
     const options = useMemo<dataProps[]>(() => {
         if (!url && values) return values
-        console.log(data?.results);
         const opz = data ? data.results.map((el: { [key: string]: any }) => (
             { select_value: String(el[general.value || "select_value"]), select_title: el[general.title || "select_title"] }
         )) : []
@@ -106,8 +105,9 @@ export default function HLMultiSelect({
             onValuesChange={onChange}
             loop
         >
-            <MultiSelectorTrigger className={`text-xs h-8 w-full rounded-sm ${className}`}>
+            <MultiSelectorTrigger className={`text-xs h-8 flex cursor-pointer pe-3 items-center w-full rounded-sm ${className}`}>
                 <MultiSelectorInput placeholder={placeholder} />
+                <ChevronsUpDown className="size-4 opacity-50" />
             </MultiSelectorTrigger>
             <MultiSelectorContent>
                 <MultiSelectorList>

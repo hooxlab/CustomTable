@@ -60,7 +60,6 @@ export default function useRelations<T>({
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     const checkedFilter = useCallback((row: Row<T>) => {
-        console.log(filterName)
         if (active && filterName && primaryKey) {
             if (filters[filterName] && filters[filterName].includes(String((row.original as { [key: string]: any })[primaryKey]))) return true
             return false
