@@ -174,7 +174,6 @@ export default function HTable<T>({
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // table state
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
     // pagination
     const [pagination, setPagination] = useState(storedData.pagination)
 
@@ -463,7 +462,21 @@ export default function HTable<T>({
                                                     </div>
                                                 )}
 
-                                                {!cell.getIsGrouped() && flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                {cell.getIsAggregated() ? (
+                                                    // If the cell is aggregated, use the Aggregated
+                                                    // renderer for cell
+                                                    flexRender(
+                                                        cell.column.columnDef.aggregatedCell ??
+                                                        cell.column.columnDef.cell,
+                                                        cell.getContext()
+                                                    )
+                                                ) : cell.getIsPlaceholder() ? null : ( // For cells with repeated values, render null
+                                                    // Otherwise, just render the regular cell
+                                                    flexRender(
+                                                        cell.column.columnDef.cell,
+                                                        cell.getContext()
+                                                    )
+                                                )}
                                             </TableCell>
                                         ))}
 
