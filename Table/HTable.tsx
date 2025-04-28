@@ -91,7 +91,7 @@ interface HTableProps<T> {
         import: boolean;
         export: boolean;
         filter: boolean;
-        exportAll?:boolean; 
+        exportAll?: boolean;
     }
 
     // custom elements in toolbar
@@ -254,9 +254,10 @@ export default function HTable<T>({
         page: pagination.pageIndex + 1,
         pageSize: pagination.pageSize,
         order: sorting,
+        grouping: grouping,
         search: globalFilter,
         relations: relationData
-    }), [pagination, urlParams, sorting, globalFilter, relationData])
+    }), [pagination, urlParams, sorting, grouping, globalFilter, relationData])
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // get
@@ -352,7 +353,7 @@ export default function HTable<T>({
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     const exportFunction = async () => {
-        
+
         const params = { ...dataParams }
         if (settings["exportAll"]) {
             params.page = 1
