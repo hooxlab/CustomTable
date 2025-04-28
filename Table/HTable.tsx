@@ -463,7 +463,7 @@ export default function HTable<T>({
                                                     </div>
                                                 )}
 
-                                                {cell.getValue()}
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                 {/* {cell.getIsAggregated() ? (
                                                     // If the cell is aggregated, use the Aggregated
                                                     // renderer for cell
