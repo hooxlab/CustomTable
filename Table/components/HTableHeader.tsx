@@ -122,7 +122,7 @@ export default function HTableHeader<T>({ header }: HTableHeaderProps<T>) {
                                             </DropdownMenuShortcut>
                                         </DropdownMenuItem>
                                     )}
-{/* 
+
                                     {header.column.getCanGroup() && (
                                         <DropdownMenuItem {...{ onClick: header.column.getToggleGroupingHandler() }} className="text-xs">
                                             {header.column.getIsGrouped() ? `Espandi (${header.column.getGroupedIndex()}) ` : `Raggruppa`}
@@ -130,7 +130,7 @@ export default function HTableHeader<T>({ header }: HTableHeaderProps<T>) {
                                                 {header.column.getIsGrouped() ? <Maximize className="size-3" /> : <Minimize className="size-3" />}
                                             </DropdownMenuShortcut>
                                         </DropdownMenuItem>
-                                    )} */}
+                                    )}
                                 </>
                             )}
                         </DropdownMenuContent>

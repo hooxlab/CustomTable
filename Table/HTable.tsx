@@ -331,7 +331,7 @@ export default function HTable<T>({
         onColumnVisibilityChange: setColumnVisibility,
 
         // grouping
-        // manualGrouping: true,
+        manualGrouping: true,
         getGroupedRowModel: getGroupedRowModel(),
         getExpandedRowModel: getExpandedRowModel(),
         onGroupingChange: setGrouping,
@@ -463,7 +463,8 @@ export default function HTable<T>({
                                                     </div>
                                                 )}
 
-                                                {cell.getIsAggregated() ? (
+                                                {cell.getValue()}
+                                                {/* {cell.getIsAggregated() ? (
                                                     // If the cell is aggregated, use the Aggregated
                                                     // renderer for cell
                                                     flexRender(
@@ -477,7 +478,7 @@ export default function HTable<T>({
                                                         cell.column.columnDef.cell,
                                                         cell.getContext()
                                                     )
-                                                )}
+                                                )} */}
                                             </TableCell>
                                         ))}
 
