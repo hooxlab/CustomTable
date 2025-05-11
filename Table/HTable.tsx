@@ -212,7 +212,6 @@ export default function HTable<T>({
         filterName: filterName || primaryKey,
         primaryKey: primaryKey,
         setFilters: effectiveSetFilters
-
     })
 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -339,7 +338,7 @@ export default function HTable<T>({
         // resize
         columnResizeMode: 'onChange',
         columnResizeDirection: 'ltr',
-        defaultColumn: { minSize: 300, maxSize: 1200 },
+        defaultColumn: { size: 140, minSize: 100, maxSize: 1200 },
 
         // total elements
         rowCount,
@@ -395,24 +394,28 @@ export default function HTable<T>({
             <Table>
 
                 <TableHeader className="sticky top-0">
-                    {table.getHeaderGroups().map((headerGroup) => (
+                    {table.getHeaderGroups().map((headerGroup) => {
+                        return (
+                        
                         <TableRow key={headerGroup.id} className="*:px-4 *:border">
                             {isFilter.active && (<TableHead className={`${isFilter.slim && 'h-4'}`}></TableHead>)}
                             {headerGroup.headers.map((header) => (
-                                <TableHead key={header.id} style={{ width: `${header.getSize()}px` }} className={`text-xs ${isFilter.slim && 'h-4'}`}>
-                                    <HTableHeader header={header} />
+                                <TableHead key={header.id} colSpan={header.subHeaders?.length || 1} className={`text-xs ${isFilter.slim && 'h-4'}`}>
+                                    <div className="overflow-hidden" style={{ width: `${header.getSize()}px` }}>
+                                        <HTableHeader header={header} />
+                                    </div>
                                 </TableHead>
                             ))}
                             {!isFilter.active && Object.entries(crud).some(([, value]) => value) && <TableHead></TableHead>}
                         </TableRow>
-                    ))}
+                    )})}
 
                     {/* totals top */}
                     {totalsUrl != "" &&
-                        table.getHeaderGroups().map((headerGroup) => (
+                        table.getHeaderGroups().slice(-1).map((headerGroup) => (
                             <TableRow key={headerGroup.id} className="*:px-4 *:border bg-gray-100 hover:bg-gray-100">
                                 {headerGroup.headers.map((header) => (
-                                    <TableCell key={header.id} style={{ width: `${header.getSize()}px` }} className="text-xs">
+                                    <TableCell key={header.id} colSpan={header.subHeaders?.length || 1} className="text-xs">
                                         <strong>{totals.data && totals.data[header.id] && totals.data[header.id]}</strong>
                                     </TableCell>
                                 ))}
@@ -523,10 +526,10 @@ export default function HTable<T>({
                 {/* totals bottom */}
                 {totalsUrl != "" &&
                     <TableFooter className="sticky bottom-0">
-                        {table.getHeaderGroups().map((headerGroup) => (
+                        {table.getHeaderGroups().slice(-1).map((headerGroup) => (
                             <TableRow key={headerGroup.id} className="*:px-4 *:border bg-gray-100 hover:bg-gray-100">
                                 {headerGroup.headers.map((header) => (
-                                    <TableCell key={header.id} style={{ width: `${header.getSize()}px` }} className="text-xs">
+                                    <TableCell key={header.id} className="text-xs">
                                         <strong>{totals.data && totals.data[header.id] && totals.data[header.id]}</strong>
                                     </TableCell>
                                 ))}

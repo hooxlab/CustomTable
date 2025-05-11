@@ -107,7 +107,7 @@ export default function HLMultiSelect({
         >
             <MultiSelectorTrigger className={`text-xs h-8 flex cursor-pointer pe-3 items-center w-full rounded-sm ${className}`}>
                 <MultiSelectorInput placeholder={placeholder} />
-                <ChevronsUpDown className="size-4 opacity-50" />
+                <ChevronsUpDown className="size-4 opacity-50 absolute right-2 pointer-events-none" />
             </MultiSelectorTrigger>
             <MultiSelectorContent>
                 <MultiSelectorList>
