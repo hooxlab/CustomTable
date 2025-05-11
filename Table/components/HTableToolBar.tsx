@@ -257,7 +257,7 @@ export default function HTableToolBar<T>({
                                         {table.getAllLeafColumns().map((column: Column<T, unknown>) => {
                                             return (
                                                 <DropdownMenuCheckboxItem className="text-xs" key={column.id} checked={column.getIsVisible()} onClick={column.getToggleVisibilityHandler()}>
-                                                    {column.columnDef.header}
+                                                    {typeof column.columnDef.header === 'string' ? column.columnDef.header : column.id}
                                                 </DropdownMenuCheckboxItem>
                                             )
                                         })}
