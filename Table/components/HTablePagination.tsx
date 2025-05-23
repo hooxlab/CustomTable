@@ -80,7 +80,7 @@ export default function HTablePagination<T>({ table, info, isFilter }: HTablePag
                             <SelectValue placeholder="Theme" />
                         </SelectTrigger>
                         <SelectContent>
-                            {[25, 50, 100].map(pageSize => (
+                            {[25, 50, 100, 500, 1000].map(pageSize => (
                                 <SelectItem key={pageSize} className="text-xs" value={pageSize.toString()}>{pageSize}</SelectItem>
                             ))}
                         </SelectContent>
