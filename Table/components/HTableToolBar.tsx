@@ -159,6 +159,7 @@ export default function HTableToolBar<T>({
 
         // query
         const res = await exportData()
+        console.log(res)
 
         // tipo di file e estensione
         const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
@@ -169,9 +170,28 @@ export default function HTableToolBar<T>({
         const worksheet = workbook.addWorksheet('Sheet1')
 
         // estraggo le colonne e imposto le colonne
-        const columns: Partial<ColumnFile>[] = table.getHeaderGroups()[0].headers.map((el: Header<T, unknown>) => (
-            { header: el.column.columnDef.header as string, key: el.id, width: 40 }
-        ))
+        // Get columns from first row keys if data exists
+        
+        const columns: Partial<ColumnFile>[] = res.length > 0 
+            ? Object.keys(res[0]).map(key => {
+                const value = res[0][key];
+                // const isCurrency = typeof value === 'string' && value.includes('€');
+                return {
+                    header: key,
+                    key: key,
+                    width: 40,
+                    //style: isCurrency ? {numFmt: '#,##0.00 €'} : value instanceof Date ? {numFmt: 'dd/mm/yyyy'} : undefined
+                    style: value instanceof Date ? {numFmt: 'dd/mm/yyyy'} : undefined
+                };
+            })
+            : table.getHeaderGroups()[0].headers.map((el: Header<T, unknown>) => ({
+                header: el.column.columnDef.header as string,
+                key: el.id,
+                width: 40
+            }));
+        // const columns: Partial<ColumnFile>[] = table.getHeaderGroups()[0].headers.map((el: Header<T, unknown>) => (
+        //     { header: el.column.columnDef.header as string, key: el.id, width: 40 }
+        // ))
         worksheet.columns = columns
 
         // estraggo le righe (i dati) e imposto le righe

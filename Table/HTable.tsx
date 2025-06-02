@@ -353,7 +353,7 @@ export default function HTable<T>({
 
     const exportFunction = async () => {
 
-        const params = { ...dataParams }
+        const params = { ...dataParams, dataForExport: false }
         if (settings["exportAll"]) {
             params.page = 1
             params.pageSize = -1
