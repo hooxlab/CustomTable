@@ -307,7 +307,7 @@ export default function HTable<T>({
             isPinned === 'right' && column.getIsFirstColumn('right')
 
         return {
-            backgroundColor: 'white',
+
             boxShadow: isLastLeftPinnedColumn
                 ? '-4px 0 4px -4px gray inset'
                 : isFirstRightPinnedColumn
@@ -418,7 +418,7 @@ export default function HTable<T>({
             {/* table */}
             <Table>
 
-                <TableHeader className="sticky top-0">
+                <TableHeader className="sticky top-0 z-50 bg-white">
                     {table.getHeaderGroups().map((headerGroup) => {
                         return (
                         
@@ -427,7 +427,7 @@ export default function HTable<T>({
                             {headerGroup.headers.map((header) => (
                                 <TableHead key={header.id} 
                                         colSpan={header.subHeaders?.length || 1} 
-                                        className={`text-xs ${isFilter.slim && 'h-4'}`}
+                                        className={`text-xs ${isFilter.slim && 'h-4'} bg-white`}
                                         style={{ ...getCommonPinningStyles(header.column) }}
                                         >
                                     <div className="overflow-hidden" style={{ width: `${header.getSize()}px` }}>
@@ -478,7 +478,7 @@ export default function HTable<T>({
                                         {/* data */}
                                         {row.getVisibleCells().map((cell) => (
                                             <TableCell
-                                                className={`${isFilter.slim && "px-0 py-1"}`}
+                                                className={`${isFilter.slim && "px-0 py-1"} bg-white`}
                                                 key={cell.id}
                                                 style={{ ...getCommonPinningStyles(cell.column) }}
                                                 onDoubleClick={() => {
