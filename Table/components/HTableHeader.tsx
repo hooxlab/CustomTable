@@ -83,9 +83,9 @@ export default function HTableHeader<T>({ header }: HTableHeaderProps<T>) {
                 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
 
                 {(header.column.getCanPin() || header.column.getCanGroup()) && (
-                    <div className="">
+                   
                     <DropdownMenu >
-                        <DropdownMenuTrigger asChild className="h-full items-center flex items-center px-1 hover:bg-stone-100 hover:text-destructive cursor-pointer">
+                        <DropdownMenuTrigger asChild className="h-full items-center flex items-center px-1 hover:bg-stone-100 hover:text-destructive cursor-pointer borde-r">
                             <div className={`${(header.column.getIsPinned() || header.column.getIsGrouped()) && "text-stone-950 hover:text-destructive pointer"} `}>
                                 <Settings2 size={12} />
                             </div>
@@ -135,7 +135,7 @@ export default function HTableHeader<T>({ header }: HTableHeaderProps<T>) {
                             )}
                         </DropdownMenuContent>
                     </DropdownMenu>
-                    </div>
+                  
                 )}
             </div>
 

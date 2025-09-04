@@ -418,7 +418,7 @@ export default function HTable<T>({
             {/* table */}
             <Table>
 
-                <TableHeader className="sticky top-0 z-50 bg-white">
+                <TableHeader className="sticky top-0 z-50 ">
                     {table.getHeaderGroups().map((headerGroup) => {
                         return (
                         
