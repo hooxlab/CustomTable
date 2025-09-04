@@ -1,9 +1,8 @@
 // shad
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Button } from "@/components/ui/button"
 
 // icons
-import { ArrowUp, ArrowDown, ArrowUpDown, Group, Settings2, ArrowLeftToLine, ArrowRightToLine, X, Maximize, Minimize, XIcon } from "lucide-react"
+import { ArrowUp, ArrowDown, ArrowUpDown, Group, Settings2, ArrowLeftToLine, ArrowRightToLine, X, Maximize, Minimize } from "lucide-react"
 
 // table
 import { Header } from "@tanstack/react-table"
