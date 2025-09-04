@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, CSSProperties } from "react"
 
 // components
 import Loader from "@/components/custom/CustomTable/Loader"
@@ -30,7 +30,8 @@ import {
     getPaginationRowModel,
     SortingState, getSortedRowModel,
     ColumnFiltersState, getFilteredRowModel,
-    getGroupedRowModel, getExpandedRowModel
+    getGroupedRowModel, getExpandedRowModel,
+    Column
 } from "@tanstack/react-table"
 
 // hook
@@ -297,6 +298,30 @@ export default function HTable<T>({
         enabled: !!totalsUrl
     })
 
+    // common pinning styles
+    const getCommonPinningStyles = (column: Column<T>): CSSProperties => {
+        const isPinned = column.getIsPinned()
+        const isLastLeftPinnedColumn =
+            isPinned === 'left' && column.getIsLastColumn('left')
+        const isFirstRightPinnedColumn =
+            isPinned === 'right' && column.getIsFirstColumn('right')
+
+        return {
+            backgroundColor: 'white',
+            boxShadow: isLastLeftPinnedColumn
+                ? '-4px 0 4px -4px gray inset'
+                : isFirstRightPinnedColumn
+                    ? '4px 0 4px -4px gray inset'
+                    : undefined,
+            left: isPinned === 'left' ? `${column.getStart('left')}px` : undefined,
+            right: isPinned === 'right' ? `${column.getAfter('right')}px` : undefined,
+            opacity: isPinned ? 0.95 : 1,
+            position: isPinned ? 'sticky' : 'relative',
+            width: column.getSize(),
+            zIndex: isPinned ? 1 : 0,
+        }
+    }
+
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // table
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -400,7 +425,11 @@ export default function HTable<T>({
                         <TableRow key={headerGroup.id} className="*:px-4 *:border">
                             {isFilter.active && (<TableHead className={`${isFilter.slim && 'h-4'}`}></TableHead>)}
                             {headerGroup.headers.map((header) => (
-                                <TableHead key={header.id} colSpan={header.subHeaders?.length || 1} className={`text-xs ${isFilter.slim && 'h-4'}`}>
+                                <TableHead key={header.id} 
+                                        colSpan={header.subHeaders?.length || 1} 
+                                        className={`text-xs ${isFilter.slim && 'h-4'}`}
+                                        style={{ ...getCommonPinningStyles(header.column) }}
+                                        >
                                     <div className="overflow-hidden" style={{ width: `${header.getSize()}px` }}>
                                         <HTableHeader header={header} />
                                     </div>
@@ -415,7 +444,7 @@ export default function HTable<T>({
                         table.getHeaderGroups().slice(-1).map((headerGroup) => (
                             <TableRow key={headerGroup.id} className="*:px-4 *:border bg-gray-100 hover:bg-gray-100">
                                 {headerGroup.headers.map((header) => (
-                                    <TableCell key={header.id} colSpan={header.subHeaders?.length || 1} className="text-xs">
+                                    <TableCell key={header.id} colSpan={header.subHeaders?.length || 1} className="text-xs" style={{ ...getCommonPinningStyles(header.column) }}>
                                         <strong>{totals.data && totals.data[header.id] && totals.data[header.id]}</strong>
                                     </TableCell>
                                 ))}
@@ -451,6 +480,7 @@ export default function HTable<T>({
                                             <TableCell
                                                 className={`${isFilter.slim && "px-0 py-1"}`}
                                                 key={cell.id}
+                                                style={{ ...getCommonPinningStyles(cell.column) }}
                                                 onDoubleClick={() => {
                                                     if (row.getIsGrouped()) return
                                                     const id = (row.original as { _id: string })._id
@@ -529,7 +559,7 @@ export default function HTable<T>({
                         {table.getHeaderGroups().slice(-1).map((headerGroup) => (
                             <TableRow key={headerGroup.id} className="*:px-4 *:border bg-gray-100 hover:bg-gray-100">
                                 {headerGroup.headers.map((header) => (
-                                    <TableCell key={header.id} className="text-xs">
+                                    <TableCell key={header.id} className="text-xs" style={{ ...getCommonPinningStyles(header.column) }}>
                                         <strong>{totals.data && totals.data[header.id] && totals.data[header.id]}</strong>
                                     </TableCell>
                                 ))}
