@@ -3,7 +3,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Button } from "@/components/ui/button"
 
 // icons
-import { ArrowUp, ArrowDown, ArrowUpDown, Group, Settings2, ArrowLeftToLine, ArrowRightToLine, X, Maximize, Minimize } from "lucide-react"
+import { ArrowUp, ArrowDown, ArrowUpDown, Group, Settings2, ArrowLeftToLine, ArrowRightToLine, X, Maximize, Minimize, XIcon } from "lucide-react"
 
 // table
 import { Header } from "@tanstack/react-table"
@@ -22,7 +22,7 @@ interface HTableHeaderProps<T> {
 
 export default function HTableHeader<T>({ header }: HTableHeaderProps<T>) {
     return (
-        <section className="flex items-center gap-2 relative group">
+        <section className="flex items-stretch relative justify-between h-full">
 
             {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                 resize
@@ -47,19 +47,18 @@ export default function HTableHeader<T>({ header }: HTableHeaderProps<T>) {
 
             {header.column.getCanSort() && (
                 <>
-                    <div onClick={() => header.column.toggleSorting()} className="cursor-pointer flex items-center gap-2">
-                        {typeof header.column.columnDef.header === "function" ? header.column.columnDef.header(header.getContext()) : header.column.columnDef.header}
-                        <Button variant="ghost" size="sm" className="px-2">
-                            {header.column.getIsSorted() === "asc" ?
-                                <ArrowUp className="text-primary" /> : header.column.getIsSorted() === "desc" ? <ArrowDown className="text-primary" /> : <ArrowUpDown />
+                    <div onClick={() => header.column.toggleSorting()} className="group cursor-pointer px-1 flex items-center justify-between ">
+                        {header.column.getIsSorted() === "asc" ?
+                                <ArrowUp size={12} className="text-destructive" /> : header.column.getIsSorted() === "desc" ? <ArrowDown size={12} className="text-destructive" /> : <ArrowUpDown className="text-stone-400 group-hover:text-stone-900" size={12} />
                             }
-                        </Button>
+                       <div className={`pl-1 r ${header.column.getIsSorted() ? 'font-bold text-destructive' : ''}`}>
+                       {typeof header.column.columnDef.header === "function" ? header.column.columnDef.header(header.getContext()) : header.column.columnDef.header}
+                       </div>
+                      
+                         
+                       
                     </div>
-                    {header.column.getIsSorted() && (
-                        <Button variant="ghost" size="sm" className="px-2 text-destructive hover:text-destructive" onClick={() => header.column.clearSorting()}>
-                            <X />
-                        </Button>
-                    )}
+
                 </>
             )}
 
@@ -67,16 +66,16 @@ export default function HTableHeader<T>({ header }: HTableHeaderProps<T>) {
                 <div>{typeof header.column.columnDef.header === "function" ? header.column.columnDef.header(header.getContext()) : header.column.columnDef.header}</div>
             )}
 
-            <div className="flex items-center gap-2">
+            <div className="flex">
 
                 {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                     grouping
                 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
 
                 {header.column.getIsGrouped() && (
-                    <Button variant="ghost" size="icon" className="text-destructive" onClick={header.column.getToggleGroupingHandler()}>
-                        <Group className="size-4" />
-                    </Button>
+                    <div  className="flex items-center px-1 text-stone-950 hover:text-destructive cursor-pointer" onClick={header.column.getToggleGroupingHandler()}>
+                        <Group size={12}/>
+                    </div>
                 )}
 
                 {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -84,11 +83,12 @@ export default function HTableHeader<T>({ header }: HTableHeaderProps<T>) {
                 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
 
                 {(header.column.getCanPin() || header.column.getCanGroup()) && (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild className="focus-visible:ring-0 focus-visible:ring-offset-0">
-                            <Button size="icon" variant="ghost" className={`${(header.column.getIsPinned() || header.column.getIsGrouped()) && "text-primary"}`}>
-                                <Settings2 />
-                            </Button>
+                    <div className="">
+                    <DropdownMenu >
+                        <DropdownMenuTrigger asChild className="h-full items-center flex items-center px-1 hover:bg-stone-100 hover:text-destructive cursor-pointer">
+                            <div className={`${(header.column.getIsPinned() || header.column.getIsGrouped()) && "text-stone-950 hover:text-destructive pointer"} `}>
+                                <Settings2 size={12} />
+                            </div>
                         </DropdownMenuTrigger>
 
                         <DropdownMenuContent className="w-56">
@@ -135,6 +135,7 @@ export default function HTableHeader<T>({ header }: HTableHeaderProps<T>) {
                             )}
                         </DropdownMenuContent>
                     </DropdownMenu>
+                    </div>
                 )}
             </div>
 

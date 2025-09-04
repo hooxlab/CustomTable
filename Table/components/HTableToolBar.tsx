@@ -214,9 +214,9 @@ export default function HTableToolBar<T>({
             {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                 search
             ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
-
+            <div className="flex items-center justify-between">
             {settings.search && (
-                <section className={`grid gap-2 ${isFilter.slim ? "mb-2" : "grid-cols-2 mb-4"}`}>
+                <section className={`flex-grow grid gap-2 ${isFilter.slim ? "mb-2" : "grid-cols-2 mb-4"}`}>
                     <div className="flex gap-2">
                         <Input
                             autoFocus={false}
@@ -236,7 +236,7 @@ export default function HTableToolBar<T>({
             )}
 
             {!isFilter.active && (
-                <div className="grid grid-cols-4 items-center gap-2 py-1 mb-4">
+                <div className="flex-shrink flex grid-cols-4 items-center gap-2 py-1 mb-4">
                     <div className="flex gap-2 items-center">
 
                         {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -244,8 +244,8 @@ export default function HTableToolBar<T>({
                         ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
 
                         {storage.exist && (
-                            <Button variant="destructive" size="sm" onClick={storage.reset}>
-                                <RotateCcw /> Pulisci tabella
+                            <Button variant="destructive" size="sm" title="Pulisci tabella" onClick={storage.reset}>
+                                <RotateCcw /> 
                             </Button>
                         )}
 
@@ -420,6 +420,7 @@ export default function HTableToolBar<T>({
                     </div>
                 </div>
             )}
+            </div>
         </>
     )
 }

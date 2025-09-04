@@ -422,7 +422,7 @@ export default function HTable<T>({
                     {table.getHeaderGroups().map((headerGroup) => {
                         return (
                         
-                        <TableRow key={headerGroup.id} className="*:px-4 *:border">
+                        <TableRow key={headerGroup.id} className="*:px-0  *:border">
                             {isFilter.active && (<TableHead className={`${isFilter.slim && 'h-4'}`}></TableHead>)}
                             {headerGroup.headers.map((header) => (
                                 <TableHead key={header.id} 
@@ -430,7 +430,7 @@ export default function HTable<T>({
                                         className={`text-xs ${isFilter.slim && 'h-4'} bg-white`}
                                         style={{ ...getCommonPinningStyles(header.column) }}
                                         >
-                                    <div className="overflow-hidden" style={{ width: `${header.getSize()}px` }}>
+                                    <div className="overflow-hidden h-full" style={{ width: `${header.getSize()}px` }}>
                                         <HTableHeader header={header} />
                                     </div>
                                 </TableHead>
