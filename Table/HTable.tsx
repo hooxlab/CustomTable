@@ -418,7 +418,7 @@ export default function HTable<T>({
             {/* table */}
             <Table>
 
-                <TableHeader className="sticky top-0 z-50 ">
+                <TableHeader className="sticky top-0 z-50 ring-1 ring-stone-200 bg-white  ">{/* ring è fix baco sfondo dello sticky header allo scroll */}
                     {table.getHeaderGroups().map((headerGroup) => {
                         return (
                         
@@ -442,9 +442,9 @@ export default function HTable<T>({
                     {/* totals top */}
                     {totalsUrl != "" &&
                         table.getHeaderGroups().slice(-1).map((headerGroup) => (
-                            <TableRow key={headerGroup.id} className="*:px-4 *:border bg-gray-100 hover:bg-gray-100">
+                            <TableRow key={headerGroup.id} className="*:px-4 *:border  hover:bg-gray-100">
                                 {headerGroup.headers.map((header) => (
-                                    <TableCell key={header.id} colSpan={header.subHeaders?.length || 1} className="text-xs" style={{ ...getCommonPinningStyles(header.column) }}>
+                                    <TableCell key={header.id} colSpan={header.subHeaders?.length || 1} className="text-xs ring-1 ring-stone-200" style={{ ...getCommonPinningStyles(header.column) }}>
                                         <strong>{totals.data && totals.data[header.id] && totals.data[header.id]}</strong>
                                     </TableCell>
                                 ))}
@@ -546,7 +546,7 @@ export default function HTable<T>({
 
                             {table.getRowModel().rows?.length == 0 && (
                                 <TableRow>
-                                    <TableCell colSpan={columns.length + 1} className="border h-12 text-xs text-destructive">Nessun risultato disponibile.</TableCell>
+                                    <TableCell colSpan={columns.length + 1} className="border  text-xs text-destructive">Nessun risultato disponibile.</TableCell>
                                 </TableRow>
                             )}
                         </>
@@ -554,8 +554,8 @@ export default function HTable<T>({
                 </TableBody>
 
                 {/* totals bottom */}
-                {totalsUrl != "" &&
-                    <TableFooter className="sticky bottom-0">
+                {totalsUrl == "" &&
+                    <TableFooter className="sticky bottom-0 z-50">
                         {table.getHeaderGroups().slice(-1).map((headerGroup) => (
                             <TableRow key={headerGroup.id} className="*:px-4 *:border bg-gray-100 hover:bg-gray-100">
                                 {headerGroup.headers.map((header) => (
