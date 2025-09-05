@@ -49,8 +49,13 @@ export default function HLAccordion({
     return (
         <Accordion type="single" className={`border-0 ${className}`} collapsible>
             <AccordionItem value={name} className="border-0">
-                <AccordionTrigger className="p-2 rounded-t-md h-[32px] bg-background data-[state=closed]:rounded-md hover:no-underline">
-                    <span className="text-primary flex gap-2 items-center">
+                <AccordionTrigger className="shadow text-xs p-2 h-[32px] 
+                bg-background
+                data-[state=open]:rounded-t-md
+               
+              
+                data-[state=closed]:rounded-md hover:no-underline">
+                    <span className="flex gap-2 items-center">
                         {icon && icon}
                         <div>{title}</div>
                     </span>
