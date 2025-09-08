@@ -404,7 +404,7 @@ export default function HTable<T>({
     return (
         <>
             {/* toolbar */}
-            <div>
+            <div className="pt-2">
                 <HTableToolBar<T>
                     table={table}
                     isFilter={isFilter}
@@ -420,7 +420,7 @@ export default function HTable<T>({
             {/* table */}
             <Table tableHeight={tableHeight}>
 
-                <TableHeader className="sticky top-0 z-50 ring-1 ring-stone-200 bg-white  ">{/* ring è fix baco sfondo dello sticky header allo scroll */}
+                <TableHeader className="sticky top-0 z-50 ring-1 ring-stone-200 bg-white ">{/* ring è fix baco sfondo dello sticky header allo scroll */}
                     {table.getHeaderGroups().map((headerGroup) => {
                         return (
                         
@@ -432,7 +432,7 @@ export default function HTable<T>({
                                         className={`text-xs ${isFilter.slim && 'h-4'} bg-white`}
                                         style={{ ...getCommonPinningStyles(header.column) }}
                                         >
-                                    <div className="overflow-hidden h-full" style={{ width: `${header.getSize()}px` }}>
+                                    <div className="overflow-hidden h-full" >
                                         <HTableHeader header={header} />
                                     </div>
                                 </TableHead>
@@ -444,7 +444,7 @@ export default function HTable<T>({
                     {/* totals top */}
                     {totalsUrl != "" &&
                         table.getHeaderGroups().slice(-1).map((headerGroup) => (
-                            <TableRow key={headerGroup.id} className="*:px-4 *:border  hover:bg-gray-100">
+                            <TableRow key={headerGroup.id} className="*:px-4 *:border bg-gray-100 hover:bg-gray-100">
                                 {headerGroup.headers.map((header) => (
                                     <TableCell key={header.id} colSpan={header.subHeaders?.length || 1} className="text-xs ring-1 ring-stone-200" style={{ ...getCommonPinningStyles(header.column) }}>
                                         <strong>{totals.data && totals.data[header.id] && totals.data[header.id]}</strong>
@@ -556,7 +556,7 @@ export default function HTable<T>({
                 </TableBody>
 
                 {/* totals bottom */}
-                {totalsUrl == "" &&
+                {totalsUrl != "" && !isFilter.active &&
                     <TableFooter className="sticky bottom-0 z-50">
                         {table.getHeaderGroups().slice(-1).map((headerGroup) => (
                             <TableRow key={headerGroup.id} className="*:px-4 *:border bg-gray-100 hover:bg-gray-100">

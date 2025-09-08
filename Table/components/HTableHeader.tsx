@@ -53,16 +53,14 @@ export default function HTableHeader<T>({ header }: HTableHeaderProps<T>) {
                        <div className={`pl-1 r ${header.column.getIsSorted() ? 'font-bold text-destructive' : ''}`}>
                        {typeof header.column.columnDef.header === "function" ? header.column.columnDef.header(header.getContext()) : header.column.columnDef.header}
                        </div>
-                      
-                         
-                       
+                    
                     </div>
 
                 </>
             )}
 
             {!header.column.getCanSort() && (
-                <div>{typeof header.column.columnDef.header === "function" ? header.column.columnDef.header(header.getContext()) : header.column.columnDef.header}</div>
+                <div className="flex items-center px-1">{typeof header.column.columnDef.header === "function" ? header.column.columnDef.header(header.getContext()) : header.column.columnDef.header}</div>
             )}
 
             <div className="flex">
@@ -84,7 +82,7 @@ export default function HTableHeader<T>({ header }: HTableHeaderProps<T>) {
                 {(header.column.getCanPin() || header.column.getCanGroup()) && (
                    
                     <DropdownMenu >
-                        <DropdownMenuTrigger asChild className="h-full items-center flex items-center px-1 hover:bg-stone-100 hover:text-destructive cursor-pointer border-r">
+                        <DropdownMenuTrigger asChild className="h-full items-center flex items-center px-1 hover:bg-stone-100 hover:text-destructive cursor-pointer">
                             <div className={`${(header.column.getIsPinned() || header.column.getIsGrouped()) && "text-stone-950 hover:text-destructive pointer"} `}>
                                 <Settings2 size={12} />
                             </div>
