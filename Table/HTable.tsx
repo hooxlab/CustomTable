@@ -57,6 +57,7 @@ interface HTableProps<T> {
 
     // general
     tableName: string;
+    tableHeight?: string;
 
     // get data
     url: string;
@@ -119,6 +120,7 @@ interface HTableProps<T> {
 
 export default function HTable<T>({
     tableName,
+    tableHeight = "",
 
     url,
     urlParams = "",
@@ -416,7 +418,7 @@ export default function HTable<T>({
             </div>
 
             {/* table */}
-            <Table>
+            <Table tableHeight={tableHeight}>
 
                 <TableHeader className="sticky top-0 z-50 ring-1 ring-stone-200 bg-white  ">{/* ring è fix baco sfondo dello sticky header allo scroll */}
                     {table.getHeaderGroups().map((headerGroup) => {
